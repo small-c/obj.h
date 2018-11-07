@@ -5,45 +5,43 @@ C oriented object based on closure function.
 Add `#include "wobj.h"` to your source code.
 
 ### example
+Comparse between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for code guide.
 
 ```c++
-// C                                                    | // C++
+// C                                                    |  // C++
 #include "wobj.h"                                       |  #include <stdio.h>
                                                         |  #include <stdlib.h>
-/*declare Dog object*/                                  |  #include <stdint.h>
-wobj(Dog, {                                             |  
-    uint32_t weight; /*property*/                       |  class Dog {
-    const char *name;                                   |  public:
-    void(*speak)(); /*method*/                          |      Dog(const char *name, uint32_t weight);
-                                                        |      ~Dog() {};
-} /*, you can define type here as struct*/);            |  
-                                                        |      uint32_t weight;
-/*define 'speak' method, like: void Dog.speak(void)*/   |      const char *name;
-wobj_def(Dog, void, speak, (void), {                    |      void speak();
-    printf("I'm %s, my weight is %dkg.\n",              |  };
-        self->name, self->weight);                      |  
-})                                                      |  Dog::Dog(const char *name, uint32_t weight) {
-                                                        |      this->name = name;
-/*init Dog*/                                            |      this->weight = weight;
-wobj_init(Dog, (const char* name, uint32_t weight), {   |  }
-    wobj_set(Dog, speak); /*set 'sepak', important!*/   |  
-    /*set property*/                                    |  void Dog::speak() {
-    self->name = name;                                  |      printf("I'm %s, my weight is %dkg.\n",
-    self->weight = weight;                              |          this->name, this->weight);
-}, { /*free*/                                           |  }
-    free(self->speak); /*necessary*/                    |  
-    free(self);                                         |  int main(void) {
-})                                                      |      const char *name = "Crazy Dog!";
-                                                        |      Dog *dog_foo = new Dog(name, 32);
-int main(void) {                                        |      
-    const char* name = "Crazy Dog!";                    |      dog_foo->speak();
-    /*create mydog as Dog object*/                      |      return 0;
-    wobj_new(Dog, dog_foo, name, 32);                   |  }
-    /*call method*/                                     |  
-    dog_foo->speak();                                   |  
-    /*<< I'm Crazy Dog, my weight is 32kg.*/            |  
+                                                        |  #include <stdint.h>
                                                         |  
-    wobj_free(Dog, dog_foo); /*free dog_foo*/           |  
-    return 0;                                           |  
-}                                                       |  
+wobj(Dog, {                                             |  class Dog {
+    uint32_t weight;                                    |  public:
+    const char *name;                                   |      Dog(const char *name, uint32_t weight);
+    void(*speak)();                                     |      ~Dog();
+                                                        |      uint32_t weight;
+});                                                     |      const char *name;
+                                                        |      void speak();
+                                                        |  };
+                                                        |  
+wobj_def(Dog, void, speak, (void), {                    |  void Dog::speak() {
+    printf("I'm %s, my weight is %dkg.\n",              |      printf("I'm %s, my weight is %dkg.\n",
+        self->name, self->weight);                      |          this->name, this->weight);
+})                                                      |  }
+                                                        |  
+wobj_init(Dog, (const char* name, uint32_t weight), {   |  Dog::Dog(const char *name, uint32_t weight) {
+    wobj_set(Dog, speak);                               |      this->name = name;
+    self->name = name;                                  |      this->weight = weight;
+    self->weight = weight;                              |  }
+}, {                                                    |  
+    free(self->speak);                                  |  Dog::~Dog() {
+    free(self);                                         |  
+})                                                      |  }
+                                                        |  
+int main(void) {                                        |  int main(void) {
+    const char* name = "Crazy Dog!";                    |      const char *name = "Crazy Dog!";
+    wobj_new(Dog, dog_foo, name, 32);                   |      Dog *dog_foo = new Dog(name, 32);
+    dog_foo->speak();                                   |      dog_foo->speak();
+                                                        |      
+    wobj_free(Dog, dog_foo);                            |      detele dog_foo;
+    return 0;                                           |      return 0;
+}                                                       |  }
 ```
