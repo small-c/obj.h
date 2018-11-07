@@ -12,7 +12,7 @@ Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wo
 #include "wobj.h"                                     |  #include <stdio.h>
                                                       |  #include <stdlib.h>
                                                       |  #include <stdint.h>
-                                                // declare //
+                                           // declare |
 wobj(Dog, {                                           |  class Dog {
     uint32_t weight;                                  |  public:
     const char *name;                                 |      Dog(const char *name, uint32_t weight);
@@ -21,21 +21,21 @@ wobj(Dog, {                                           |  class Dog {
                                                       |      const char *name;
                                                       |      void speak();
                                                       |  };
-                                                 // method //  
+                                            // method |  
 wobj_def(Dog, void, speak, (void), {                  |  void Dog::speak() {
     printf("I'm %s, my weight is %dkg.\n",            |      printf("I'm %s, my weight is %dkg.\n",
         self->name, self->weight);                    |          this->name, this->weight);
 })                                                    |  }
-                                                 // init //  
+                                             // init  |  
 wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *name, uint32_t weight) {
     wobj_set(Dog, speak);                             |      this->name = name;
     self->name = name;                                |      this->weight = weight;
     self->weight = weight;                            |  }
-}, {                                             // free //  
+}, {                                          // free |  
     free(self->speak);                                |  Dog::~Dog() {
     free(self);                                       |  
 })                                                    |  }
-                                                 // main //  
+                                              // main |  
 int main(void) {                                      |  int main(void) {
     const char* name = "Crazy Dog!";                  |      const char *name = "Crazy Dog!";
     wobj_new(Dog, dog_foo, name, 32);                 |      Dog *dog_foo = new Dog(name, 32);
