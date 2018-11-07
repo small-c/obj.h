@@ -8,7 +8,7 @@ Add `#include "wobj.h"` to your source code.
 
 ```c++
 // C                                                    | // C++
-#include "closure.h"                                    |  #include <stdio.h>
+#include "wobj.h"                                       |  #include <stdio.h>
                                                         |  #include <stdlib.h>
 /*declare Dog object*/                                  |  #include <stdint.h>
 wobj(Dog, {                                             |  
