@@ -1,4 +1,4 @@
-#include "closure.h"                                 
+#include "wobj.h"                                 
                                                      
 // declare Dog object                                
 wobj(Dog, {                                          
