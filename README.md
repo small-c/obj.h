@@ -5,7 +5,7 @@ C oriented object based on closure function.
 Add `#include "wobj.h"` to your source code.
 
 ### example
-Comparse between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for code guide.
+Compare between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for code guide.
 
 ```c++
 // C                                                    |  // C++
