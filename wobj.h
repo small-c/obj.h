@@ -137,6 +137,10 @@ extern "C" {
 #ifndef _WOBJ_H
 #define _WOBJ_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define wobj(name) \
     struct __wobj_##name
 
@@ -168,4 +172,8 @@ extern "C" {
 #define wobj_copy(name, var_name, old) struct __wobj_##name *var_name = calloc(1, sizeof(struct __wobj_##name)); \
     memcpy(var_name, old, sizeof(struct __wobj_##name))
 
-#endif // !_wobj_H
+#ifdef __cplusplus
+}
+#endif
+    
+#endif // !_WOBJ_H
