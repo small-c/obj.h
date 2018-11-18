@@ -8,6 +8,55 @@
 ### usage
 Add `#include "wobj.h"` to your source code.
 
+### marco
+
+Declare new object
+```c
+wobj(name, body);
+```
+
+Define method function
+```c
+wobj_def(name, type, func, args, body)
+```
+
+Init object
+```c
+wobj_init(name, args_new, body_init, body_free)
+```
+
+Set method function (in init)
+```c
+wobj_set(name, func)
+```
+
+Allocate memory for object, it has auto GC, no need to free()
+```c
+wobj_alloc(name, size)
+```
+
+Create new object
+```c
+wobj_new(name, var_name, ...)
+```
+
+Free object and call GC
+```c
+wobj_free(name, var_name)
+```
+
+### my GC
+
+```
+alloc: mem -> node[mem, next]
+                |
+                v
+free:  static.next-->|
+          ^          |
+          |          |
+          |__________|
+```
+
 ### example
 Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
 
