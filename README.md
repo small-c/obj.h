@@ -36,9 +36,9 @@ wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *na
     self->name = name;                                |      this->weight = weight;
     self->weight = weight;                            |  }
 }, {                                          // free |  
-    free(self->speak);                                |  Dog::~Dog() {
-    free(self);                                       |  
-})                                                    |  }
+                                                      |  Dog::~Dog() {
+})                                                    |  
+                                                      |  }
                                               // main |  
 int main(void) {                                      |  int main(void) {
     const char* name = "Crazy Dog!";                  |      const char *name = "Crazy Dog!";
