@@ -1,5 +1,9 @@
 # wobj
-C oriented object based on struct and [closure function](https://github.com/yulon/clofn).
+**C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
+
+- [x] Easy, fast and high performance
+- [x] Crossplatform
+- [x] Auto GC
 
 ### usage
 Add `#include "wobj.h"` to your source code.
