@@ -141,8 +141,24 @@ extern "C" {
 extern "C" {
 #endif
 
-#define wobj(name) \
-    struct __wobj_##name
+typedef struct _wobj_node_t {
+	void *ptr;
+	struct _wobj_node_t *next;
+} wobj_node_t;
+
+static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
+	wobj_node_t *c = *node;
+	*node = malloc(sizeof(wobj_node_t));
+	(*node)->ptr = malloc(size);
+	(*node)->next = c;
+	return (*node)->ptr;
+}
+
+#define wobj_alloc(name, size) __wobj_alloc__(&__wobj_##name##_$node, size)
+
+#define wobj(name, body) \
+	wobj_node_t *__wobj_##name##_$node = NULL; \
+    struct __wobj_##name body
 
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
@@ -155,7 +171,7 @@ extern "C" {
 
 #define wobj_init(name, args_new, body_init, body_free) \
     static struct __wobj_##name * __wobj_##name##_$init args_new { \
-        struct __wobj_##name * self = (struct __wobj_##name *)calloc(1, sizeof(struct __wobj_##name)); \
+        struct __wobj_##name * self = (struct __wobj_##name *)wobj_alloc(name, sizeof(struct __wobj_##name)); \
         if (!self) return NULL; \
         body_init \
         return self; \
@@ -163,9 +179,23 @@ extern "C" {
     static void __wobj_##name##_$free(struct __wobj_##name * self) { \
         if (!self) return; \
         body_free \
+		wobj_node_t *_$node = __wobj_##name##_$node; \
+		while(_$node != NULL) { \
+			wobj_node_t *_$next = _$node->next; \
+			free(_$node->ptr); \
+			free(_$node); \
+			_$node = _$next; \
+		} \
     }
 
-#define wobj_set(name, func) self->func = _new_clofn(__wobj_##name##_##func, &__wobj_##name##_$phsize, (void*)self)
+#define wobj_set(name, func) \
+	self->func = _new_clofn(__wobj_##name##_##func, &__wobj_##name##_$phsize, (void*)self); \
+	{ \
+		wobj_node_t *_$node = __wobj_##name##_$node; \
+		__wobj_##name##_$node = malloc(sizeof(wobj_node_t)); \
+		__wobj_##name##_$node->ptr = self->func; \
+		__wobj_##name##_$node->next = _$node; \
+	}
 
 #define wobj_new(name, var_name, ...) struct __wobj_##name *var_name = __wobj_##name##_$init(__VA_ARGS__)
 #define wobj_free(name, var_name) __wobj_##name##_$free(var_name)
