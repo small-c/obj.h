@@ -3,7 +3,7 @@
 
 - [x] Easy, fast and high performance
 - [x] Crossplatform
-- [x] Auto GC
+- [x] Supported GC
 
 ### usage
 Add `#include "wobj.h"` to your source code.
