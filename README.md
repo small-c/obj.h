@@ -1,7 +1,7 @@
 # wobj [![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
-- [x] Easy, fast and high performance
+- [x] Easy to use, fast and high performance
 - [x] Crossplatform
 - [x] Supported GC
 
