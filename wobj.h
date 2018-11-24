@@ -158,7 +158,7 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
 
 #define wobj(name, body) \
 	wobj_node_t *__wobj_##name##_$node = NULL; \
-    struct __wobj_##name body
+    typedef struct __wobj_##name body
 
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
