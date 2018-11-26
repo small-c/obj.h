@@ -2,7 +2,7 @@
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
 - [x] Easy to use, fast and high performance
-- [x] Crossplatform
+- [x] Crossplatform: Win32 / Linux / OSX
 - [x] Supported GC
 
 ### usage
