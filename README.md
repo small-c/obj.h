@@ -52,7 +52,7 @@ alloc: [object] -----+
                      |
                      v
      +--> mem::node[obj, next::mem]
-     |               |          |
+     |               |          T
      |               V          |
      +---- free: [object] <-----+
 ```
