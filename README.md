@@ -48,50 +48,54 @@ wobj_free(name, var_name)
 ### my GC
 
 ```
-alloc: mem -> node[mem, next]
-                |
-                v
-free:  static.next-->|
-          ^          |
-          |          |
-          |__________|
+alloc: [object] -----+
+                     |
+                     v
+     +--> mem::node[obj, next::mem]
+     |               |          |
+     |               V          |
+     +---- free: [object] <-----+
 ```
 
 ### example
 Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
 
 ```c++
-// C                                                  |  // C++
+// C + wobj                                           |  // C++
 #include "wobj.h"                                     |  #include <stdio.h>
                                                       |  #include <stdlib.h>
                                                       |  #include <stdint.h>
-                                           // declare |
+                                                      |  
 wobj(Dog, {                                           |  class Dog {
-    uint32_t weight;                                  |  public:
-    const char *name;                                 |      Dog(const char *name, uint32_t weight);
-    void(*speak)();                                   |      ~Dog();
-});                                                   |      uint32_t weight;
-                                                      |      const char *name;
-                                                      |      void speak();
-                                                      |  };
-                                            // method |  
+                                                      |  public:
+                                                      |      Dog(const char *name, uint32_t weight);
+                                                      |      ~Dog();
+    uint32_t weight;                                  |      uint32_t weight;
+    char *name;                                       |      const char *name;
+    void(*speak)();                                   |      void speak();
+});                                                   |  };
+                                                      |
 wobj_def(Dog, void, speak, (void), {                  |  void Dog::speak() {
     printf("I'm %s, my weight is %dkg.\n",            |      printf("I'm %s, my weight is %dkg.\n",
         self->name, self->weight);                    |          this->name, this->weight);
 })                                                    |  }
-                                             // init  |  
+                                                      |  
 wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *name, uint32_t weight) {
-    wobj_set(Dog, speak);                             |      this->name = name;
-    self->name = name;                                |      this->weight = weight;
-    self->weight = weight;                            |  }
-}, {                                          // free |  
+    wobj_set(Dog, speak);                             |      
+    self->weight = weight;                            |      this->weight = weight;
+                                                      |
+    int len = strlen(name);                           |      int len = strlen(name);
+    self->name = wobj_alloc(Dog, len + 1);            |      this->name = new char[len + 1]();
+    memset(self->name, '\0', len);                    |      memset(this->name, '\0', len);
+    memcpy(self->name, name, len);                    |      memcpy(this->name, name, len);
+}, {                                                  |  }
+    //                                                |
                                                       |  Dog::~Dog() {
-})                                                    |  
-                                                      |  }
-                                              // main |  
+                                                      |      delete this->name;
+})                                                    |  }
+                                                      |  
 int main(void) {                                      |  int main(void) {
-    const char* name = "Crazy Dog!";                  |      const char *name = "Crazy Dog!";
-    wobj_new(Dog, dog_foo, name, 32);                 |      Dog *dog_foo = new Dog(name, 32);
+    wobj_new(Dog, dog_foo, "Crazy Dog!", 32);         |      Dog *dog_foo = new Dog("Crazy Dog!", 32);
     dog_foo->speak();                                 |      dog_foo->speak();
                                                       |      
     wobj_free(Dog, dog_foo);                          |      detele dog_foo;
