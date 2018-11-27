@@ -1,9 +1,10 @@
 # wobj [![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
-- [x] Easy to use, fast and high performance
-- [x] Crossplatform: Win32 / Linux / OSX
-- [x] Supported GC
+<a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
+<a href="#"><img src="https://img.shields.io/badge/performance-high-blue.svg"></a>
+<br>
+<a href="#"><img src="https://img.shields.io/badge/platform-Win32/Linux/OSX-lightgrey.svg"></a>
 
 ### usage
 Add `#include "wobj.h"` to your source code.
