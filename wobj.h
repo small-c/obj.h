@@ -141,6 +141,12 @@ extern "C" {
 extern "C" {
 #endif
 
+#if (defined (wobj_this) || (this) || (use_this)) && !defined (__cplusplus)
+#define _wobj_root_ this
+#else
+#define _wobj_root_ self
+#endif
+
 typedef struct _wobj_node_t {
 	void *ptr;
 	struct _wobj_node_t *next;
@@ -163,7 +169,7 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
         volatile size_t __wobj_self = (size_t)_CLOFN_SCIENCE_NUMBER; \
-        struct __wobj_##name *self = (struct __wobj_##name *)__wobj_self; \
+        struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)__wobj_self; \
         body \
     } \
     static size_t __wobj_##name##_$phsize = 0; \
@@ -171,13 +177,13 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
 
 #define wobj_init(name, args_new, body_init, body_free) \
     static struct __wobj_##name * __wobj_##name##_$init args_new { \
-        struct __wobj_##name * self = (struct __wobj_##name *)wobj_alloc(name, sizeof(struct __wobj_##name)); \
-        if (!self) return NULL; \
+        struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)wobj_alloc(name, sizeof(struct __wobj_##name)); \
+        if (!_wobj_root_) return NULL; \
         body_init \
-        return self; \
+        return _wobj_root_; \
     } \
-    static void __wobj_##name##_$free(struct __wobj_##name * self) { \
-        if (!self) return; \
+    static void __wobj_##name##_$free(struct __wobj_##name * _wobj_root_) { \
+        if (!_wobj_root_) return; \
         body_free \
 		wobj_node_t *_$node = __wobj_##name##_$node; \
 		while(_$node != NULL) { \
@@ -189,11 +195,11 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
     }
 
 #define wobj_set(name, func) \
-	self->func = _new_clofn(__wobj_##name##_##func, &__wobj_##name##_$phsize, (void*)self); \
+	_wobj_root_->func = _new_clofn(__wobj_##name##_##func, &__wobj_##name##_$phsize, (void*)_wobj_root_); \
 	{ \
 		wobj_node_t *_$node = __wobj_##name##_$node; \
 		__wobj_##name##_$node = malloc(sizeof(wobj_node_t)); \
-		__wobj_##name##_$node->ptr = self->func; \
+		__wobj_##name##_$node->ptr = _wobj_root_->func; \
 		__wobj_##name##_$node->next = _$node; \
 	}
 
