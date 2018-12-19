@@ -1,15 +1,16 @@
-# wobj [![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
+# wobj
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
+[![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
+<br>
 <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
-<a href="#"><img src="https://img.shields.io/badge/performance-high-blue.svg"></a>
 <br>
 <a href="#"><img src="https://img.shields.io/badge/platform-Win32/Linux/OSX-lightgrey.svg"></a>
 
 ### usage
 Add `#include "wobj.h"` to your source code.
 
-### marco
+### macros
 
 Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 ```c
