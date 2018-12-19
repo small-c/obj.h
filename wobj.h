@@ -172,8 +172,8 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
         struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)__wobj_self; \
         body \
     } \
-    static size_t __wobj_##name##_$phsize = 0; \
-    static size_t __wobj_##name##_$phhash = 0;
+    static size_t __wobj_##name##_##func##_$phsize = 0; \
+    static size_t __wobj_##name##_##func##_$phhash = 0;
 
 #define wobj_init(name, args_new, body_init, body_free) \
     static struct __wobj_##name * __wobj_##name##_$init args_new { \
@@ -195,7 +195,7 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
     }
 
 #define wobj_set(name, func) \
-	_wobj_root_->func = _new_clofn(__wobj_##name##_##func, &__wobj_##name##_$phsize, (void*)_wobj_root_); \
+	_wobj_root_->func = (void*)_new_clofn(__wobj_##name##_##func, &__wobj_##name##_##func##_$phsize, (void*)_wobj_root_); \
 	{ \
 		wobj_node_t *_$node = __wobj_##name##_$node; \
 		__wobj_##name##_$node = malloc(sizeof(wobj_node_t)); \
