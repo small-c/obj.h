@@ -11,6 +11,12 @@ Add `#include "wobj.h"` to your source code.
 
 ### marco
 
+Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
+```c
+#define wobj_this // or this or use_this
+#include "wobj.h"
+```
+
 Declare new object
 ```c
 wobj(name, body);
