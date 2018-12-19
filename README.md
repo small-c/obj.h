@@ -5,7 +5,7 @@
 <br>
 <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
 <br>
-<a href="#"><img src="https://img.shields.io/badge/platform-Win32/Linux/OSX-lightgrey.svg"></a>
+<a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
 
 ### usage
 Add `#include "wobj.h"` to your source code.
