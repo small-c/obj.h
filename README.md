@@ -94,8 +94,8 @@ wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *na
                                                       |
     int len = strlen(name);                           |      int len = strlen(name);
     self->name = wobj_alloc(Dog, len + 1);            |      this->name = new char[len + 1]();
-    memset(self->name, '\0', len);                    |      memset(this->name, '\0', len);
     memcpy(self->name, name, len);                    |      memcpy(this->name, name, len);
+    self->name[len] = '\0';                           |      self->name[len] = '\0';
 }, {                                                  |  }
     //                                                |
                                                       |  Dog::~Dog() {
