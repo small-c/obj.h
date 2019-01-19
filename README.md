@@ -38,7 +38,7 @@ Set method function (in init)
 wobj_set(name, func)
 ```
 
-Allocate memory for object, it has auto GC, no need to free()
+Allocate memory on heap (like `malloc`), but no need to `free`
 ```c
 wobj_alloc(name, size)
 ```
@@ -56,13 +56,15 @@ wobj_free(name, var_name)
 ### my GC
 
 ```
-alloc: [object] -----+
-                     |
-                     v
-     +--> mem::node[obj, next::mem]
-     |               |          T
-     |               V          |
-     +---- free: [object] <-----+
+alloc: new [ ] -----> [object]
+                         |
+                         v
+linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
+                         |                |                  +----> |
+                         |                +-----------------------> |
+                         +----------------------------------------> |
+                                                                    v          
+free: delete [ ] <--------------------------------------------- [object]
 ```
 
 ### example
