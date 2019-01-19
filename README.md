@@ -66,7 +66,10 @@ alloc: [object] -----+
 ```
 
 ### example
-Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
+
+- Simple string object, based on [wobj](https://github.com/small-c/wobj) & **C string**: [strs](https://github.com/small-c/strs)
+
+- Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
 
 ```c++
 // C + wobj                                           |  // C++
