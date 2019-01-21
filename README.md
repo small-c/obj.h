@@ -3,9 +3,10 @@
 
 [![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
 <br>
+<p>
 <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
-<br>
 <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
+</p>
 
 ### usage
 Add `#include "wobj.h"` to your source code.
