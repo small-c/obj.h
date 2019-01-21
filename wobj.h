@@ -1,6 +1,6 @@
-#ifndef _CLOFN_H
-#define _CLOFN_H
-
+#ifndef _wobj_h_
+#define _wobj_h_
+#pragma once
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -14,13 +14,16 @@ extern "C" {
 #define CLOFN_PHSIZE_MAX 1024
 #define _CLOFN_SCIENCE_NUMBER 0x58ffffbffdffffafULL
 
-#if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
 #include <sys/user.h>
     static inline bool _clofn_active_memory(void *ptr, size_t size) {
         return mprotect((void *)(((size_t)ptr >> PAGE_SHIFT) << PAGE_SHIFT), size, PROT_READ | PROT_EXEC | PROT_WRITE) == 0;
     }
 #elif defined(_WIN32)
+#if (defined(DEBUG) || defined(_DEBUG)) && defined(_MSC_VER)
+#error Clofn: not support MSVC on debug mode!
+#endif
 #include <windows.h>
     static inline bool _clofn_active_memory(void *ptr, size_t size) {
         DWORD old_protect;
@@ -30,17 +33,9 @@ extern "C" {
 #error Clofn: not support this OS!
 #endif
 
-#define def_clofn(result_type, name, closure_type /* size equal to machine word */, closure_name, args, body) \
-    static result_type _clofn__##name args { \
-        volatile closure_type closure_name = (closure_type)_CLOFN_SCIENCE_NUMBER; \
-        body \
-    } \
-    static size_t _clofn__##name##__phsize = 0; \
-    static size_t _clofn__##name##__phhash = 0;
-
-    static void *_new_clofn(void *prototype, size_t *phsize, void *data) {
+    static void *__wobj_new_clofn__(void *prototype, size_t *phsize, void *data) {
 #ifdef CLOFN_PRINT_HEADER
-        printf("Clofn: prototype header (%08X) { ", prototype);
+        printf("Clofn: prototype header (%p) { ", prototype);
 #endif
 
         size_t offset = *phsize;
@@ -65,12 +60,12 @@ extern "C" {
             puts("...");
 #endif
 
-            printf("Clofn: could't find closure declaration at prototype function (%08X)!\n", (size_t)prototype);
+            printf("Clofn: could't find closure declaration at prototype function (%p)!\n", prototype);
             return NULL;
         }
 #ifdef CLOFN_PRINT_HEADER
         else {
-            printf("Clofn: prototype header (%08X) { ", prototype);
+            printf("Clofn: prototype header (%p) { ", prototype);
             for (size_t i = 0; i < phsize; i++) {
                 printf("%02X ", *(uint8_t *)(prototype + i));
             }
@@ -116,7 +111,7 @@ extern "C" {
 #endif
 
 #ifdef CLOFN_PRINT_HEADER
-        printf("Clofn: instance header (%08X) { ", instance);
+        printf("Clofn: instance header (%p) { ", instance);
         for (size_t i = 0; i < ihsize; i++) {
             printf("%02X ", *(uint8_t *)(instance + i));
         }
@@ -126,45 +121,71 @@ extern "C" {
         return instance;
     }
 
-#define new_clofn(name, closure_value) _new_clofn(_clofn__##name, &_clofn__##name##__phsize, (void *)closure_value)
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif // !_CLOFN_H
-
-#ifndef _WOBJ_H
-#define _WOBJ_H
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if (defined (wobj_this) || (this) || (use_this)) && !defined (__cplusplus)
+#if defined(wobj_use_other)
+#define _wobj_root_ wobj_use_other
+#elif (defined (wobj_this) || (this) || (use_this)) && !defined (__cplusplus)
 #define _wobj_root_ this
 #else
 #define _wobj_root_ self
 #endif
 
 typedef struct _wobj_node_t {
-	void *ptr;
-	struct _wobj_node_t *next;
+    void *ptr;
+    struct _wobj_node_t *next;
 } wobj_node_t;
 
-static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
-	wobj_node_t *c = *node;
-	*node = malloc(sizeof(wobj_node_t));
-	(*node)->ptr = malloc(size);
-	(*node)->next = c;
-	return (*node)->ptr;
+static void *__wobj_malloc__(wobj_node_t **node, size_t size) {
+    wobj_node_t *c = *node;
+    *node = malloc(sizeof(wobj_node_t));
+    (*node)->ptr = malloc(size);
+    (*node)->next = c;
+    return (*node)->ptr;
 }
 
-#define wobj_alloc(name, size) __wobj_alloc__(&__wobj_##name##_$node, size)
+static void *__wobj_calloc__(wobj_node_t **node, size_t count, size_t size) {
+    wobj_node_t *c = *node;
+    *node = malloc(sizeof(wobj_node_t));
+    (*node)->ptr = calloc(count, size);
+    (*node)->next = c;
+    return (*node)->ptr;
+}
 
-#define wobj(name, body) \
-    static wobj_node_t *__wobj_##name##_$node = NULL; \
-    typedef struct __wobj_##name body
+static void *__wobj_realloc__(wobj_node_t **node, void *ptr, size_t new_size) {
+    for (wobj_node_t *c = *node, *p = NULL; c != NULL;) 
+    {
+        wobj_node_t *n = c->next;
+        if (c->ptr == ptr) {
+            if (new_size <= 0) {
+                free(ptr);
+                if (p == NULL) {
+                    free(*node);
+                    *node = n;
+                }
+                else {
+                    p->next = n; free(c);
+                }
+                return NULL;
+            }
+            else {
+                return c->ptr = realloc(ptr, new_size);
+            }
+        }
+        p = c;
+        c = n;
+    }
+    return NULL;
+}
+
+#define wobj_malloc(name, size) __wobj_malloc__(&__wobj_##name##__node__, size)
+#define wobj_calloc(name, count, size) __wobj_calloc__(&__wobj_##name##__node__, count, size)
+#define wobj_realloc(name, ptr, new_size) __wobj_realloc__(&__wobj_##name##__node__, ptr, new_size)
+#define wobj_unalloc(name, ptr) __wobj_realloc__(&__wobj_##name##__node__, ptr, 0)
+#define wobj_alloc(name, size) memset(wobj_malloc(name, size), '\0', size) // malloc + memset
+
+#define wobj(name) \
+    static wobj_node_t *__wobj_##name##__node__ = NULL; \
+    typedef struct __wobj_##name name; \
+    typedef struct __wobj_##name
 
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
@@ -172,44 +193,45 @@ static void *__wobj_alloc__(wobj_node_t **node, size_t size) {
         struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)__wobj_self; \
         body \
     } \
-    static size_t __wobj_##name##_##func##_$phsize = 0; \
-    static size_t __wobj_##name##_##func##_$phhash = 0;
+    static size_t __wobj_##name##_##func##__phsize__ = 0; \
+    static size_t __wobj_##name##_##func##__phhash__ = 0;
 
 #define wobj_init(name, args_new, body_init, body_free) \
-    static struct __wobj_##name * __wobj_##name##_$init args_new { \
+    inline struct __wobj_##name * __wobj_##name##__init__ args_new { \
         struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)wobj_alloc(name, sizeof(struct __wobj_##name)); \
         if (!_wobj_root_) return NULL; \
         body_init \
         return _wobj_root_; \
     } \
-    static void __wobj_##name##_$free(struct __wobj_##name * _wobj_root_) { \
+    inline void __wobj_##name##__free__(struct __wobj_##name * _wobj_root_) { \
         if (!_wobj_root_) return; \
         body_free \
-		wobj_node_t *_$node = __wobj_##name##_$node; \
-		while(_$node != NULL) { \
-			wobj_node_t *_$next = _$node->next; \
-			free(_$node->ptr); \
-			free(_$node); \
-			_$node = _$next; \
-		} \
+        for (wobj_node_t *__node__ = __wobj_##name##__node__;__node__ != NULL;) { \
+            wobj_node_t *__next__ = __node__->next; \
+            free(__node__->ptr); \
+            free(__node__); \
+            __node__ = __next__; \
+            puts("cleaning..."); \
+        } \
     }
 
 #define wobj_set(name, func) \
-	_wobj_root_->func = (void*)_new_clofn(__wobj_##name##_##func, &__wobj_##name##_##func##_$phsize, (void*)_wobj_root_); \
-	{ \
-		wobj_node_t *_$node = __wobj_##name##_$node; \
-		__wobj_##name##_$node = malloc(sizeof(wobj_node_t)); \
-		__wobj_##name##_$node->ptr = _wobj_root_->func; \
-		__wobj_##name##_$node->next = _$node; \
-	}
+    _wobj_root_->func = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_##name##_##func##__phsize__), (void*)_wobj_root_); \
+    { \
+        wobj_node_t *__node__ = __wobj_##name##__node__; \
+        __wobj_##name##__node__ = malloc(sizeof(wobj_node_t)); \
+        __wobj_##name##__node__->ptr = _wobj_root_->func; \
+        __wobj_##name##__node__->next = __node__; \
+    }
 
-#define wobj_new(name, var_name, ...) struct __wobj_##name *var_name = __wobj_##name##_$init(__VA_ARGS__)
-#define wobj_free(name, var_name) __wobj_##name##_$free(var_name)
-#define wobj_copy(name, var_name, old) struct __wobj_##name *var_name = calloc(1, sizeof(struct __wobj_##name)); \
-    memcpy(var_name, old, sizeof(struct __wobj_##name))
+#define wobj_new(name, var_name, ...) struct __wobj_##name *var_name = __wobj_##name##__init__(__VA_ARGS__)
+#define wobj_new2(name, var_name) struct __wobj_##name *var_name = __wobj_##name##__init__
+#define wobj_new3(name, ...) __wobj_##name##__init__(__VA_ARGS__)
+#define wobj_new4(name) __wobj_##name##__init__
+#define wobj_free(name, var_name) __wobj_##name##__free__(var_name)
 
 #ifdef __cplusplus
 }
 #endif
-    
-#endif // !_WOBJ_H
+
+#endif // !_wobj_h_
