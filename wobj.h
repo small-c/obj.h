@@ -197,13 +197,13 @@ static void *__wobj_realloc__(wobj_node_t **node, void *ptr, size_t new_size) {
     static size_t __wobj_##name##_##func##__phhash__ = 0;
 
 #define wobj_init(name, args_new, body_init, body_free) \
-    inline struct __wobj_##name * __wobj_##name##__init__ args_new { \
+    struct __wobj_##name * __wobj_##name##__init__ args_new { \
         struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)wobj_alloc(name, sizeof(struct __wobj_##name)); \
         if (!_wobj_root_) return NULL; \
         body_init \
         return _wobj_root_; \
     } \
-    inline void __wobj_##name##__free__(struct __wobj_##name * _wobj_root_) { \
+    void __wobj_##name##__free__(struct __wobj_##name * _wobj_root_) { \
         if (!_wobj_root_) return; \
         body_free \
         for (wobj_node_t *__node__ = __wobj_##name##__node__;__node__ != NULL;) { \
