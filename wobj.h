@@ -211,7 +211,6 @@ static void *__wobj_realloc__(wobj_node_t **node, void *ptr, size_t new_size) {
             free(__node__->ptr); \
             free(__node__); \
             __node__ = __next__; \
-            puts("cleaning..."); \
         } \
     }
 
