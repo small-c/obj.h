@@ -21,7 +21,10 @@ Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 
 Declare new object
 ```c
-wobj(name, body);
+wobj(name) {
+    // body
+    // like struct
+} /* declare another type name here */;
 ```
 
 Define method function
@@ -47,11 +50,41 @@ wobj_alloc(name, size)
 Create new object
 ```c
 wobj_new(name, var_name, ...)
+wobj_new2(name, var_name)(...)
+name var_name = wobj_new3(name, ...)
+name var_name = wobj_new(name)(...)
 ```
 
 Free object and call GC
 ```c
 wobj_free(name, var_name)
+```
+
+#### allocate with auto GC
+
+Allocate on heap (like `malloc`)
+```
+wobj_malloc(name, size)
+```
+
+Allocate on heap, starting value is set by zero (like `malloc + memset`)
+```
+wobj_alloc(name, size)
+```
+
+Allocate on heap (like `calloc`)
+```
+wobj_calloc(name, count, size)
+```
+
+Free memory on heap (like `free`)
+```
+wobj_unalloc(name, ptr) // ok, not `wobj_free`
+```
+
+Reallocate on heap (like `realloc`)
+```
+wobj_ralloc(name, ptr, new_size) // if new_size is zero, wobj_ralloc will be wobj_unalloc
 ```
 
 ### my GC
