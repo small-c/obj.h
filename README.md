@@ -63,27 +63,27 @@ wobj_free(name, var_name)
 #### allocate with auto GC
 
 Allocate on heap (like `malloc`)
-```
+```c
 wobj_malloc(name, size)
 ```
 
 Allocate on heap, starting value is set by zero (like `malloc + memset`)
-```
+```c
 wobj_alloc(name, size)
 ```
 
 Allocate on heap (like `calloc`)
-```
+```c
 wobj_calloc(name, count, size)
 ```
 
 Free memory on heap (like `free`)
-```
+```c
 wobj_unalloc(name, ptr) // ok, not `wobj_free`
 ```
 
 Reallocate on heap (like `realloc`)
-```
+```c
 wobj_ralloc(name, ptr, new_size) // if new_size is zero, wobj_ralloc will be wobj_unalloc
 ```
 
@@ -113,14 +113,14 @@ free: [ ] <--------- [object]
                                                       |  #include <stdlib.h>
                                                       |  #include <stdint.h>
                                                       |  
-wobj(Dog, {                                           |  class Dog {
+wobj(Dog) {                                           |  class Dog {
                                                       |  public:
                                                       |      Dog(const char *name, uint32_t weight);
                                                       |      ~Dog();
     uint32_t weight;                                  |      uint32_t weight;
     char *name;                                       |      const char *name;
     void(*speak)();                                   |      void speak();
-});                                                   |  };
+};                                                    |  };
                                                       |
 wobj_def(Dog, void, speak, (void), {                  |  void Dog::speak() {
     printf("I'm %s, my weight is %dkg.\n",            |      printf("I'm %s, my weight is %dkg.\n",
@@ -134,7 +134,7 @@ wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *na
     int len = strlen(name);                           |      int len = strlen(name);
     self->name = wobj_alloc(Dog, len + 1);            |      this->name = new char[len + 1]();
     memcpy(self->name, name, len);                    |      memcpy(this->name, name, len);
-    self->name[len] = '\0';                           |      self->name[len] = '\0';
+                                                      |      self->name[len] = '\0';
 }, {                                                  |  }
     //                                                |
                                                       |  Dog::~Dog() {
