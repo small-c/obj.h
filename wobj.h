@@ -282,8 +282,8 @@ extern "C" {
 #define wobj_unalloc(ptr) __wobj_realloc__(&(___wobj___->__mem__), ptr, 0)
 #define wobj_alloc(size) memset(wobj_malloc(size), '\0', size) // malloc + memset
 
-#define wobj_new(name, var_name, ...) struct __wobj_##name##__public *var_name = __wobj_##name##__init__(__VA_ARGS__)
-#define wobj_new2(name, var_name) struct __wobj_##name##__public *var_name = __wobj_##name##__init__
+#define wobj_new(name, var_name, ...) struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__(__VA_ARGS__)
+#define wobj_new2(name, var_name) struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__
 #define wobj_new3(name, ...) __wobj_##name##__init__(__VA_ARGS__)
 #define wobj_new4(name) __wobj_##name##__init__
 #define wobj_free(name, var_name) __wobj_##name##__free__(var_name)
