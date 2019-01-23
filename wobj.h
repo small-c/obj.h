@@ -212,27 +212,28 @@ extern "C" {
 #define __wobj_va_args__(...) ,##__VA_ARGS__
 
 #define wobj(name, public_body, private_body, ...) \
-    typedef struct __wobj_##name##__public__ public_body *name; \
-    typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
-    struct __wobj_##name { \
-        struct __wobj_##name##__public__; \
-        struct private_body; \
-    }; \
-    struct __wobj_##name##__data__ { \
-        struct __wobj_##name; \
-        struct __wobj_mem__ *__mem__; \
-    }; \
+	typedef struct __wobj_##name##__public__ public_body *name; \
+	typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
+	struct __wobj_##name { \
+		struct public_body; \
+		struct private_body; \
+	}; \
+	struct __wobj_##name##__data__ { \
+		struct public_body; \
+		struct private_body; \
+		struct __wobj_mem__ *__mem__; \
+	}; \
 
 #define wobj_np(name, public_body, ...) \
-    typedef struct __wobj_##name##__public__ public_body *name; \
-    typedef name name __wobj_va_args__(__VA_ARGS__); \
-    struct __wobj_##name { \
-        struct __wobj_##name##__public__; \
-    }; \
-    struct __wobj_##name##__data__ { \
-        struct __wobj_##name; \
-        struct __wobj_mem__ *__mem__; \
-    }; \
+	typedef struct __wobj_##name##__public__ public_body *name; \
+	typedef name name __wobj_va_args__(__VA_ARGS__); \
+	struct __wobj_##name { \
+		struct public_body; \
+	}; \
+	struct __wobj_##name##__data__ { \
+		struct public_body; \
+		struct __wobj_mem__ *__mem__; \
+	}; \
     
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
