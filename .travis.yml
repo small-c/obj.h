@@ -12,8 +12,10 @@ matrix:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
          
 script:
-    - gcc -std=gnu99 -w -o test ./test.c
+    - gcc -std=gnu99 -w -o test ./tests/test.c
     - ./test
+    - gcc -std=gnu99 -w -o animal -I./ ./tests/animal.c ./tests/main.c
+    - ./animal
     
 language:
     - c
