@@ -14,6 +14,8 @@ matrix:
 script:
     - gcc -std=gnu99 -w -o test -I. tests/test.c
     - ./test
+    - gcc -std=gnu99 -w -o shape -I. tests/shape/main.c
+    - ./shape
     - gcc -std=gnu99 -w -o animal -I. tests/animal/animal.c ./tests/animal/main.c
     - ./animal
     
