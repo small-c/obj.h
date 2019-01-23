@@ -8,46 +8,61 @@
 <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
 </p>
 
-### usage
+## usage
 Add `#include "wobj.h"` to your source code.
 
-### macros
+## macros
+
+### Root name (self, this...)
 
 Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
+
 ```c
-#define wobj_this // or this or use_this
+#define wobj_use_other XXX // to use XXX
+#define wobj_this // or `this` or `use_this` to use this
 #include "wobj.h"
 ```
 
-Declare new object
+#### Declare object
+
 ```c
-wobj(name) {
-    // body
-    // like struct
-} /* declare another type name here */;
+wobj(name, {
+// public:
+
+}, {
+// private:
+
+})
+
+wobj_np(name, {
+// public
+})
 ```
 
-Define method function
+### Define method
+
 ```c
-wobj_def(name, type, func, args, body)
+wobj_def(name, return_type, func_name, (args), {
+    // function body
+})
 ```
 
-Init object
+### Init object
+
 ```c
-wobj_init(name, args_new, body_init, body_free)
+wobj_init(name, (args_for_init), {
+    // body new
+}, {
+    // body free
+})
 ```
 
-Set method function (in init)
+### Set method function (in init)
 ```c
 wobj_set(name, func)
 ```
 
-Allocate memory on heap (like `malloc`), but no need to `free`
-```c
-wobj_alloc(name, size)
-```
-
-Create new object
+### Create new object
 ```c
 wobj_new(name, var_name, ...)
 wobj_new2(name, var_name)(...)
@@ -55,42 +70,26 @@ name var_name = wobj_new3(name, ...)
 name var_name = wobj_new(name)(...)
 ```
 
-Free object and call GC
+### Free object and call GC
+
 ```c
 wobj_free(name, var_name)
 ```
 
-#### allocate with auto GC
+### Allocate memory with auto GC (internal)
 
-Allocate on heap (like `malloc`)
 ```c
-wobj_malloc(name, size)
-```
-
-Allocate on heap, starting value is set by zero (like `malloc + memset`)
-```c
-wobj_alloc(name, size)
-```
-
-Allocate on heap (like `calloc`)
-```c
-wobj_calloc(name, count, size)
-```
-
-Free memory on heap (like `free`)
-```c
-wobj_unalloc(name, ptr) // ok, not `wobj_free`
-```
-
-Reallocate on heap (like `realloc`)
-```c
-wobj_ralloc(name, ptr, new_size) // if new_size is zero, wobj_ralloc will be wobj_unalloc
+wobj_alloc   (size)           // value is set by zero
+wobj_malloc  (size)           // like malloc
+wobj_calloc  (count, size)    // like calloc
+wobj_unalloc (ptr)            // like free, but the name is `unalloc`
+wobj_ralloc  (ptr, new_size)  // like realloc, if size == 0 then memory would be freed
 ```
 
 ### my GC
 
 ```
-alloc: [] --> [object] --+-----------------+-----------------+
+alloc: [ ] -> [object] --+-----------------+-----------------+
 position:         ...  3 |               2 |               1 |
                          v                 v                 v
 linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
@@ -98,7 +97,7 @@ linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
                        2 | <---------------+                 |
                        3 | <---------------------------------+
                      ... v 
-free: [ ] <--------- [object]
+free: [x] <--------- [object]
 ```
 
 ### example
@@ -149,3 +148,5 @@ int main(void) {                                      |  int main(void) {
     return 0;                                         |      return 0;
 }                                                     |  }
 ```
+
+### License: MIT
