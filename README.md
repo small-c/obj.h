@@ -7,6 +7,13 @@
 <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
 </p>
 
+### features
+- Objects
+- Classes
+- Public, private member
+- Data abstraction
+- Inheritance
+
 ## usage
 Add `#include "wobj.h"` to your source code.
 
