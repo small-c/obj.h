@@ -212,28 +212,28 @@ extern "C" {
 #define __wobj_va_args__(...) ,##__VA_ARGS__
 
 #define wobj(name, public_body, private_body, ...) \
-	typedef struct __wobj_##name##__public__ public_body *name; \
-	typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
-	struct __wobj_##name { \
-		struct public_body; \
-		struct private_body; \
-	}; \
-	struct __wobj_##name##__data__ { \
-		struct public_body; \
-		struct private_body; \
-		struct __wobj_mem__ *__mem__; \
-	}; \
+    typedef struct __wobj_##name##__public__ public_body *name; \
+    typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
+    struct __wobj_##name { \
+        struct public_body; \
+        struct private_body; \
+    }; \
+    struct __wobj_##name##__data__ { \
+        struct public_body; \
+        struct private_body; \
+        struct __wobj_mem__ *__mem__; \
+    }; \
 
 #define wobj_np(name, public_body, ...) \
-	typedef struct __wobj_##name##__public__ public_body *name; \
-	typedef name name __wobj_va_args__(__VA_ARGS__); \
-	struct __wobj_##name { \
-		struct public_body; \
-	}; \
-	struct __wobj_##name##__data__ { \
-		struct public_body; \
-		struct __wobj_mem__ *__mem__; \
-	}; \
+    typedef struct __wobj_##name##__public__ public_body *name; \
+    typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
+    struct __wobj_##name { \
+        struct public_body; \
+    }; \
+    struct __wobj_##name##__data__ { \
+        struct public_body; \
+        struct __wobj_mem__ *__mem__; \
+    }; \
     
 #define wobj_def(name, type, func, args, body) \
     static type __wobj_##name##_##func args { \
@@ -272,6 +272,17 @@ extern "C" {
     { \
         struct __wobj_mem__ *__new__ = malloc(sizeof(struct __wobj_mem__)); \
         __new__->ptr = _wobj_root_->func; \
+        __new__->next = ___wobj___->__mem__; \
+        ___wobj___->__mem__ = __new__; \
+    }
+
+#define wobj_public(public_name) struct __wobj_##public_name##__public__ public_name
+
+#define wobj_setp(name, public_name, func) \
+    _wobj_root_->public_name.func = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_##name##_##func##__phsize__), (void*)_wobj_root_); \
+    { \
+        struct __wobj_mem__ *__new__ = malloc(sizeof(struct __wobj_mem__)); \
+        __new__->ptr = _wobj_root_->public_name.func; \
         __new__->next = ___wobj___->__mem__; \
         ___wobj___->__mem__ = __new__; \
     }
