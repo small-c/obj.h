@@ -1,10 +1,11 @@
 # wobj
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
-[![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
 <p>
-<a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
-<a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
+    <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
+    <br>
+    <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
+    <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
 </p>
 
 ### features
@@ -13,6 +14,31 @@
 - Public, private member
 - Data abstraction
 - Inheritance
+
+### my technologies
+
+```elm
+class:
+    - public:  {...}                             |
+    - private: {...}                             |
+    - mem:     [linked list]                     |
+         ----                                    |
+method: [data] cloure(#p1, #p2, ...)             |
+           |    > mem   <-- [allocate]           |
+           +----> public, private -> [internal] --------+
+-----------------+-------------------+-----------+      v
+                 |                   v              ----------
+                 v               interface: public, init, free
+alloc: [ ] -> [object] --+-----------------+-----------------+
+position:         ...  3 |               2 |               1 |
+                         v                 v                 v
+linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
+                       1 |                 |                 |
+                       2 | <---------------+                 |
+                       3 | <---------------------------------+
+                     ... v 
+free:  [x] <-------- [object]
+```
 
 ## usage
 Add `#include "wobj.h"` to your source code.
@@ -90,20 +116,6 @@ wobj_malloc  (size);           // like malloc
 wobj_calloc  (count, size);    // like calloc
 wobj_unalloc (ptr);            // like free, but the name is `unalloc`
 wobj_ralloc  (ptr, new_size);  // like realloc, if size == 0 then memory would be freed
-```
-
-### my GC
-
-```
-alloc: [ ] -> [object] --+-----------------+-----------------+
-position:         ...  3 |               2 |               1 |
-                         v                 v                 v
-linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
-                       1 |                 |                 |
-                       2 | <---------------+                 |
-                       3 | <---------------------------------+
-                     ... v 
-free: [x] <--------- [object]
 ```
 
 ### example
