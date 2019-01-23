@@ -2,7 +2,6 @@
 **C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
 
 [![Build Status](https://travis-ci.org/wy3/wobj.svg?branch=master)](https://travis-ci.org/wy3/wobj)
-<br>
 <p>
 <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
 <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
@@ -23,7 +22,7 @@ Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 #include "wobj.h"
 ```
 
-#### Declare object
+### Declare object
 
 ```c
 wobj(name, {
@@ -59,31 +58,31 @@ wobj_init(name, (args_for_init), {
 
 ### Set method function (in init)
 ```c
-wobj_set(name, func)
+wobj_set(name, func);
 ```
 
 ### Create new object
 ```c
-wobj_new(name, var_name, ...)
-wobj_new2(name, var_name)(...)
-name var_name = wobj_new3(name, ...)
-name var_name = wobj_new(name)(...)
+wobj_new(name, var_name, ...);
+wobj_new2(name, var_name)(...);
+name var_name = wobj_new3(name, ...);
+name var_name = wobj_new(name)(...);
 ```
 
 ### Free object and call GC
 
 ```c
-wobj_free(name, var_name)
+wobj_free(name, var_name);
 ```
 
-### Allocate memory with auto GC (internal)
+### Allocate memory with auto GC (in init/method)
 
 ```c
-wobj_alloc   (size)           // value is set by zero
-wobj_malloc  (size)           // like malloc
-wobj_calloc  (count, size)    // like calloc
-wobj_unalloc (ptr)            // like free, but the name is `unalloc`
-wobj_ralloc  (ptr, new_size)  // like realloc, if size == 0 then memory would be freed
+wobj_alloc   (size);           // value is set by zero
+wobj_malloc  (size);           // like malloc
+wobj_calloc  (count, size);    // like calloc
+wobj_unalloc (ptr);            // like free, but the name is `unalloc`
+wobj_ralloc  (ptr, new_size);  // like realloc, if size == 0 then memory would be freed
 ```
 
 ### my GC
