@@ -45,7 +45,7 @@ Add `#include "wobj.h"` to your source code.
 
 ## macros
 
-### Root name (self, this...)
+### root name (self, this...)
 
 Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 
@@ -55,7 +55,7 @@ Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 #include "wobj.h"
 ```
 
-### Declare object
+### declare object
 
 ```c
 wobj(name, {
@@ -71,7 +71,7 @@ wobj_np(name, {
 })
 ```
 
-### Define method
+### define method
 
 ```c
 wobj_def(name, return_type, func_name, (args), {
@@ -79,7 +79,7 @@ wobj_def(name, return_type, func_name, (args), {
 })
 ```
 
-### Init object
+### init object
 
 ```c
 wobj_init(name, (args_for_init), {
@@ -89,12 +89,12 @@ wobj_init(name, (args_for_init), {
 })
 ```
 
-### Set method function (in init)
+### set method function (in init)
 ```c
 wobj_set(name, func);
 ```
 
-### Create new object
+### create new object
 ```c
 wobj_new(name, var_name, ...);
 wobj_new2(name, var_name)(...);
@@ -102,13 +102,13 @@ name var_name = wobj_new3(name, ...);
 name var_name = wobj_new(name)(...);
 ```
 
-### Free object and call GC
+### free object and call GC
 
 ```c
 wobj_free(name, var_name);
 ```
 
-### Allocate memory with auto GC (in init/method)
+### allocate memory with auto GC (in init/method)
 
 ```c
 wobj_alloc   (size);           // value is set by zero
