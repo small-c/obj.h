@@ -111,31 +111,33 @@ free: [x] <--------- [object]
                                                       |  #include <stdlib.h>
                                                       |  #include <stdint.h>
                                                       |  
-wobj(Dog) {                                           |  class Dog {
+wobj(Dog, {                                           |  class Dog {
                                                       |  public:
-                                                      |      Dog(const char *name, uint32_t weight);
+                                                      |      Dog(const char *name, int weight);
                                                       |      ~Dog();
-    uint32_t weight;                                  |      uint32_t weight;
-    char *name;                                       |      const char *name;
-    void(*speak)();                                   |      void speak();
-};                                                    |  };
+    int    weight;                                    |      int    weight;
+    char   *name;                                     |      char   *name;
+    void  (*speak)();                                 |      void   speak();
+}, {                                                  |  private:
+    int    power;                                     |      int    power;
+})                                                    |  };
                                                       |
 wobj_def(Dog, void, speak, (void), {                  |  void Dog::speak() {
-    printf("I'm %s, my weight is %dkg.\n",            |      printf("I'm %s, my weight is %dkg.\n",
-        self->name, self->weight);                    |          this->name, this->weight);
+    printf("The %s, weight: %d, power: %d.\n",        |      printf("The %s, weight: %d, power: %d.\n",
+        self->name, self->weight, self->power);       |          this->name, this->weight, this->power);
 })                                                    |  }
                                                       |  
-wobj_init(Dog, (const char* name, uint32_t weight), { |  Dog::Dog(const char *name, uint32_t weight) {
+wobj_init(Dog, (const char* name, int weight), {      |  Dog::Dog(const char *name, int weight) {
     wobj_set(Dog, speak);                             |      
     self->weight = weight;                            |      this->weight = weight;
-                                                      |
-    int len = strlen(name);                           |      int len = strlen(name);
+    self->power = 999 * weight;                       |      this->power = 999 * weight;
+    size_t len = strlen(name);                        |      size_t len = strlen(name);
     self->name = wobj_alloc(Dog, len + 1);            |      this->name = new char[len + 1]();
     memcpy(self->name, name, len);                    |      memcpy(this->name, name, len);
                                                       |      self->name[len] = '\0';
-}, {                                                  |  }
-    //                                                |
-                                                      |  Dog::~Dog() {
+},                                                    |  }
+                                                      |
+{                                                     |  Dog::~Dog() {
                                                       |      delete this->name;
 })                                                    |  }
                                                       |  
