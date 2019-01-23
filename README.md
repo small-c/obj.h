@@ -1,5 +1,5 @@
 # wobj
-**C oriented object based on struct and [closure function](https://github.com/yulon/clofn).**
+**C oriented object** with single header file, based on **struct** and [**closure function**](https://github.com/yulon/clofn).
 
 <p>
     <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
@@ -9,8 +9,7 @@
 </p>
 
 ### features
-- Objects
-- Classes
+- Objects, classes
 - Public, private member
 - Data abstraction
 - Inheritance
