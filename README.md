@@ -83,6 +83,9 @@ wobj_public(public_name);
 wobj_def(name, return_type, func_name, (args), {
     // function body
 })
+
+// define method/function on struct
+wobj_fn(return_type, func_name, (args, ...));
 ```
 
 ### init object
