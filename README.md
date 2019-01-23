@@ -67,8 +67,15 @@ wobj(name, {
 })
 
 wobj_np(name, {
-// public
+// public:
+
 })
+```
+
+### public from... (please see [shape example](https://github.com/small-c/wobj/tree/master/tests/shape))
+
+```c
+wobj_public(public_name);
 ```
 
 ### define method
@@ -92,6 +99,9 @@ wobj_init(name, (args_for_init), {
 ### set method function (in init)
 ```c
 wobj_set(name, func);
+
+// set method public from other, see tests/sphape example
+wobj_setp(name, public_name, func);
 ```
 
 ### create new object
