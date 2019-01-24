@@ -120,14 +120,22 @@ name var_name = wobj_new(name)(...);
 wobj_free(name, var_name);
 ```
 
-### allocate memory with auto GC (in init/method)
+### allocate memory with auto GC
 
 ```c
+// internal
 wobj_alloc   (size);           // value is set by zero
 wobj_malloc  (size);           // like malloc
 wobj_calloc  (count, size);    // like calloc
 wobj_unalloc (ptr);            // like free, but the name is `unalloc`
 wobj_ralloc  (ptr, new_size);  // like realloc, if size == 0 then memory would be freed
+
+// external
+wobj_alloco   (name, var_name, size);
+wobj_malloco  (name, var_name, size);
+wobj_calloco  (name, var_name, count, size);
+wobj_unalloco (name, var_name, ptr);
+wobj_ralloco  (name, var_name, ptr, new_size);
 ```
 
 ### example
