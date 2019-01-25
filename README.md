@@ -146,48 +146,43 @@ wobj_ralloco  (name, var_name, ptr, new_size);
 - Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
 
 ```c++
-// C + wobj                                           |  // C++
-#include "wobj.h"                                     |  #include <stdio.h>
-                                                      |  #include <stdlib.h>
-                                                      |  #include <stdint.h>
-                                                      |  
-wobj(Dog, {                                           |  class Dog {
-                                                      |  public:
-                                                      |      Dog(const char *name, int weight);
-                                                      |      ~Dog();
-    int    weight;                                    |      int    weight;
-    char   *name;                                     |      char   *name;
-    void  (*speak)();                                 |      void   speak();
-}, {                                                  |  private:
-    int    power;                                     |      int    power;
-})                                                    |  };
-                                                      |
-wobj_def(Dog, void, speak, (void), {                  |  void Dog::speak() {
-    printf("The %s, weight: %d, power: %d.\n",        |      printf("The %s, weight: %d, power: %d.\n",
-        self->name, self->weight, self->power);       |          this->name, this->weight, this->power);
-})                                                    |  }
-                                                      |  
-wobj_init(Dog, (const char* name, int weight), {      |  Dog::Dog(const char *name, int weight) {
-    wobj_set(Dog, speak);                             |      
-    self->weight = weight;                            |      this->weight = weight;
-    self->power = 999 * weight;                       |      this->power = 999 * weight;
-    size_t len = strlen(name);                        |      size_t len = strlen(name);
-    self->name = wobj_alloc(Dog, len + 1);            |      this->name = new char[len + 1]();
-    memcpy(self->name, name, len);                    |      memcpy(this->name, name, len);
-                                                      |      self->name[len] = '\0';
-},                                                    |  }
-                                                      |
-{                                                     |  Dog::~Dog() {
-                                                      |      delete this->name;
-})                                                    |  }
-                                                      |  
-int main(void) {                                      |  int main(void) {
-    wobj_new(Dog, dog_foo, "Crazy Dog!", 32);         |      Dog *dog_foo = new Dog("Crazy Dog!", 32);
-    dog_foo->speak();                                 |      dog_foo->speak();
-                                                      |      
-    wobj_free(Dog, dog_foo);                          |      detele dog_foo;
-    return 0;                                         |      return 0;
-}                                                     |  }
+// C + wobj                                   |  // C++
+                                              |
+wobj(Dog, {                                   |  class Dog {
+                                              |  public:
+                                              |      Dog(const char *name, int weight);
+                                              |      ~Dog();
+    char   *name;                             |      char   *name;
+    wobj_fn(void, speak, (void));             |      void   speak(void);
+}, {                                          |  private:
+    int    power;                             |      int    power;
+})                                            |  };
+                                              |
+wobj_def(Dog, void, speak, (void), {          |  void Dog::speak(void) {
+    printf("The %s, power: %d.\n",            |      printf("The %s, power: %d.\n",
+        self->name, self->power);             |          this->name, this->power);
+})                                            |  }
+                                              |  
+wobj_init(Dog, (const char* name), {          |  Dog::Dog(const char *name) {
+    wobj_set(Dog, speak);                     |      
+    self->power = 999 * name[0];              |      this->power = 999 * name[0];
+    size_t len = strlen(name);                |      size_t len = strlen(name);
+    self->name = wobj_alloc(len + 1);         |      this->name = new char[len + 1]();
+    memcpy(self->name, name, len);            |      memcpy(this->name, name, len);
+                                              |      self->name[len] = '\0';
+},                                            |  }
+                                              |
+{                                             |  Dog::~Dog() {
+                                              |      delete this->name;
+})                                            |  }
+                                              |  
+int main(void) {                              |  int main(void) {
+    wobj_new(Dog, dog_foo, "Crazy Dog!");     |      Dog *dog_foo = new Dog("Crazy Dog!");
+    dog_foo->speak();                         |      dog_foo->speak();
+                                              |      
+    wobj_free(Dog, dog_foo);                  |      detele dog_foo;
+    return 0;                                 |      return 0;
+}                                             |  }
 ```
 
 ### License: MIT
