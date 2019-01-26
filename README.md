@@ -18,13 +18,13 @@
 ### my technologies
 
 ```elm
-class:
+class:                                       /* God */
     - public:  {...}                             |
     - private: {...}                             |
     - mem:     [linked list]                     |
          ----                                    |
 method: [data] cloure(#p1, #p2, ...)             |
-           |    > mem   <-- [allocate]           |
+           |    > mem   <-- [allocate]           v
            +----> public, private -> [internal] --------+
 -----------------+-------------------+-----------+      v
                  |                   v              ----------
