@@ -261,7 +261,7 @@ extern "C" {
         body_init \
         return (struct __wobj_##name##__public__*)_wobj_root_; \
     } \
-    void __wobj_##name##__free__(struct __wobj_##name##__public__ * _wobj_root_) { \
+    void __wobj_##name##__free__(struct __wobj_##name * _wobj_root_) { \
         if (!_wobj_root_) return; \
         struct __wobj_##name##__data__ *__wobj = (struct __wobj_##name##__data__*)_wobj_root_; \
         body_free \
@@ -313,7 +313,7 @@ extern "C" {
 #define wobj_new2(name, var_name)     struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__
 #define wobj_new3(name, ...)                 __wobj_##name##__init__(__VA_ARGS__)
 #define wobj_new4(name)                      __wobj_##name##__init__
-#define wobj_free(name, var_name)            __wobj_##name##__free__(var_name)
+#define wobj_free(name, var_name)            __wobj_##name##__free__((struct __wobj_##name*)var_name)
 
 #define wobj_sizeof(name) (sizeof(struct __wobj_##name##__public__))
 #define wobj_sizeoff(name) (sizeof(struct __wobj_##name))
