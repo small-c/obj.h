@@ -304,10 +304,10 @@ extern "C" {
 // external allocate
 #define __wobj_omem(name, var) (((struct __wobj_##name##__data__*)var)->__mem)
 #define wobj_malloco(name, var, size)          __wobj_allocate__(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL)
-#define wobj_calloc(name, var, count, size)    __wobj_allocate__(&__wobj_omem(name, var), WOBJ_CALLOC,  count, size,     NULL)
-#define wobj_realloc(name, var, ptr, new_size) __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     new_size, ptr)
-#define wobj_unalloc(name, var, ptr)           __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     0,        ptr)
-#define wobj_alloc(name, var, size)     memset(__wobj_allocate__(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
+#define wobj_calloco(name, var, count, size)    __wobj_allocate__(&__wobj_omem(name, var), WOBJ_CALLOC,  count, size,     NULL)
+#define wobj_realloco(name, var, ptr, new_size) __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     new_size, ptr)
+#define wobj_unalloco(name, var, ptr)           __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     0,        ptr)
+#define wobj_alloco(name, var, size)     memset(__wobj_allocate__(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
 
 #define wobj_new(name, var_name, ...) struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__(__VA_ARGS__)
 #define wobj_new2(name, var_name)     struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__
