@@ -121,29 +121,29 @@ name var_name = wobj_new(name)(...);
 wobj_free(name, var_name);
 ```
 
-### allocate memory with auto GC
+### allocate memory with GC
 
 ```c
 // internal
-wobj_alloc   (size);           // value is set by zero
-wobj_malloc  (size);           // like malloc
-wobj_calloc  (count, size);    // like calloc
-wobj_unalloc (ptr);            // like free, but the name is `unalloc`
-wobj_ralloc  (ptr, new_size);  // like realloc, if size == 0 then memory would be freed
+void *wobj_alloc   (size_t size);           // value is set by zero
+void *wobj_malloc  (size_t size);           // like malloc
+void *wobj_calloc  (size_t count, size_t size);    // like calloc
+void *wobj_ralloc  (void *ptr, size_t new_size);  // like realloc, if size == 0 then memory would be freed
+void  wobj_unalloc (void *ptr);            // like free, but the name is `unalloc`
 
 // external
-wobj_alloco   (name, var_name, size);
-wobj_malloco  (name, var_name, size);
-wobj_calloco  (name, var_name, count, size);
-wobj_unalloco (name, var_name, ptr);
-wobj_ralloco  (name, var_name, ptr, new_size);
+void *wobj_alloco   (name, var_name, size_t size);
+void *wobj_malloco  (name, var_name, size_t size);
+void *wobj_calloco  (name, var_name, size_t count, size_t size);
+void *wobj_ralloco  (name, var_name, void *ptr, size_t new_size);
+void  wobj_unalloco (name, var_name, void *ptr);
 ```
 
 ### example
 
 - Simple string object, based on [wobj](https://github.com/small-c/wobj) & **C string**: [strs](https://github.com/small-c/strs)
 
-- Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/test.c) for details.
+- Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/tests/test.c) for details.
 
 ```c++
 // C + wobj                                   |  // C++
