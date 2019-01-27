@@ -217,7 +217,8 @@ extern "C" {
 #define __wobj_va_args__(...) ,##__VA_ARGS__
 
 #define wobj(name, public_body, private_body, ...) \
-    typedef struct __wobj_##name##__public__ public_body *name; \
+    typedef struct __wobj_##name##__public__ *name; \
+    struct __wobj_##name##__public__ public_body; \
     typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
     struct __wobj_##name { \
         struct public_body; \
@@ -230,7 +231,8 @@ extern "C" {
     }; \
 
 #define wobj_np(name, public_body, ...) \
-    typedef struct __wobj_##name##__public__ public_body *name; \
+    typedef struct __wobj_##name##__public__ *name; \
+    struct __wobj_##name##__public__ public_body; \
     typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
     struct __wobj_##name { \
         struct public_body; \
