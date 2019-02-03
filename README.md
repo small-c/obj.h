@@ -1,12 +1,21 @@
-# wobj
-[https://wobj.wy3.space](https://wobj.wy3.space)<br>
-**C oriented object** with single header file, based on **struct** and [**closure function**](https://github.com/yulon/clofn).
-
-<p>
-    <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
-    <br>
-    <a href="#"><img src="https://img.shields.io/badge/auto--GC-✓-brightgreen.svg"></a>
-    <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
+<p align="center">
+    <h1 align="center">wobj</h1>
+    <h4 align="center">
+        <i>C Oriented Object</i> with single header file, based on <i>struct</i> and <a href="https://github.com/yulon/clofn" target="_blank"><i>closure function</i></a>
+    </h4>
+    <p align="center">
+        <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
+        <a href="#"><img src="https://img.shields.io/badge/gc-✓-brightgreen.svg"></a>
+        <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
+    </p>
+    <h1></h1>
+    <p align="center">
+        <i>No programming technique solves all problems.</i><br>
+        <i>No programming language produces only correct results.</i><br>
+        <i>No programmer should start each project from scratch.</i><br>
+        <i>" OOC "</i>
+    </p>
+    <h1></h1>
 </p>
 
 ### features
