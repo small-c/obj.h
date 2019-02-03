@@ -67,6 +67,8 @@ Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 ### declare object
 
 ```c
+wobj_decl(name)
+
 wobj(name, {
 // public:
 
