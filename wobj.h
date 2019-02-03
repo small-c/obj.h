@@ -216,6 +216,9 @@ extern "C" {
 
 #define __wobj_va_args__(...) ,##__VA_ARGS__
 
+#define wobj_decl(name) \
+    typedef struct __wobj_##name##__public__ *name;
+    
 #define wobj(name, public_body, private_body, ...) \
     typedef struct __wobj_##name##__public__ *name; \
     struct __wobj_##name##__public__ public_body; \
