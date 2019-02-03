@@ -14,6 +14,8 @@
         <i>No programming language produces only correct results.</i><br>
         <i>No programmer should start each project from scratch.</i><br>
         <i>" OOC "</i>
+        <br>
+        <i>C++, Java, C# or other has OOP, why C does not?</i><br>
     </p>
     <h1></h1>
 </p>
@@ -197,3 +199,4 @@ int main(void) {                              |  int main(void) {
 ```
 
 ### License: MIT
+- Give me something if it is useful ([click here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CZ5C58TN4LY4L)).
