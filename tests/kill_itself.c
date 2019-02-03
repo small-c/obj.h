@@ -1,6 +1,6 @@
 #include "wobj.h"
 
-wobj(Test
+wobj(Test,
     {
         const int value;
         
@@ -40,9 +40,9 @@ int main() {
 
     Test it = wobj_new4(Test)();
 
-    printf("%d", it->value)
+    printf("%d\n", it->value);
     it->get();
-    it->kill()
+    it->kill();
     
     puts("done!");
     return 0;
