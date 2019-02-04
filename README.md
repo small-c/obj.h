@@ -21,6 +21,7 @@
 </p>
 
 ### features
+- Self allocate with garbage collecor
 - Objects, classes
 - Public, private member
 - Data abstraction
@@ -154,48 +155,47 @@ void  wobj_unalloco (name, var_name, void *ptr);
 
 ### example
 
-- Simple string object, based on [wobj](https://github.com/small-c/wobj) & **C string**: [strs](https://github.com/small-c/strs)
-
 - Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/tests/test.c) for details.
 
 ```c++
-// C + wobj                                   |  // C++
-                                              |
-wobj(Dog, {                                   |  class Dog {
-                                              |  public:
-                                              |      Dog(const char *name, int weight);
-                                              |      ~Dog();
-    char   *name;                             |      char   *name;
-    wobj_fn(void, speak, (void));             |      void   speak(void);
-}, {                                          |  private:
-    int    power;                             |      int    power;
-})                                            |  };
-                                              |
-wobj_def(Dog, void, speak, (void), {          |  void Dog::speak(void) {
-    printf("The %s, power: %d.\n",            |      printf("The %s, power: %d.\n",
-        self->name, self->power);             |          this->name, this->power);
-})                                            |  }
-                                              |  
-wobj_init(Dog, (const char* name), {          |  Dog::Dog(const char *name) {
-    wobj_set(Dog, speak);                     |      
-    self->power = 999 * name[0];              |      this->power = 999 * name[0];
-    size_t len = strlen(name);                |      size_t len = strlen(name);
-    self->name = wobj_alloc(len + 1);         |      this->name = new char[len + 1]();
-    memcpy(self->name, name, len);            |      memcpy(this->name, name, len);
-                                              |      self->name[len] = '\0';
-},                                            |  }
-                                              |
-{                                             |  Dog::~Dog() {
-                                              |      delete this->name;
-})                                            |  }
-                                              |  
-int main(void) {                              |  int main(void) {
-    wobj_new(Dog, dog_foo, "Crazy Dog!");     |      Dog *dog_foo = new Dog("Crazy Dog!");
-    dog_foo->speak();                         |      dog_foo->speak();
-                                              |      
-    wobj_free(Dog, dog_foo);                  |      detele dog_foo;
-    return 0;                                 |      return 0;
-}                                             |  }
+// C + wobj                           |   // C++
+#include "wobj.h"                     |   #include <stdio.h>
+                                      |   
+wobj(FOO,                             |   class FOO {
+public (                              |   public:
+                                      |       FOO(int bar);
+                                      |       ~FOO();
+    int  bar;                         |       int  bar;
+    void func(set, (int val));        |       void set(int val);
+    int  func(get, ());               |       int  get();
+),                                    |
+private (                             |   private:
+    int val;                          |       int val;
+))                                    |   }
+                                      |   
+void wobj_def(FOO, set, (int val), {  |   void FOO::set(int val) {
+    self->value = val;                |       this->val = val;
+})                                    |   }
+                                      |   
+int wobj_def(FOO, get, (), {          |   int FOO:get() {
+    return self->val;                 |       return this->val;
+})                                    |   }
+                                      |
+wobj_init(FOO, (int bar), {           |   FOO:FOO(int bar) {
+    self->bar = bar;                  |       this->bar = bar;
+    wobj_set(FOO, get);               |   }
+    wobj_set(FOO, set);               |       
+}, {                                  |   FOO::~FOO() {
+    puts("freeing...");               |        puts("freeing...");
+})                                    |   }
+                                      |
+int main() {                          |   int main() {
+    wobj_new(FOO, foo, 10);           |       FOO *foo = new FOO(10);
+    foo->set(55);                     |       foo->set(55);
+    int bar = foo->bar,               |       int bar = foo->bar,
+        val = foo->get();             |           val = foo->get;
+    wobj_free(FOO, foo);              |       delete foo;
+}                                     |   }
 ```
 
 ### License: MIT
