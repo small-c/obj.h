@@ -26,8 +26,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _wobj_h_
-#define _wobj_h_
+#ifndef _WOBJ_H_
+#define _WOBJ_H_
 #pragma once
 #ifdef __cplusplus
 extern "C" {
@@ -35,9 +35,18 @@ extern "C" {
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
+
+#define WOBJ_VERSION ("1.1")
+
+#ifdef __cplusplus
+#define __bool__ bool
+#else
+#define __bool__ _Bool
+#endif
+
+// clofn ========================================
 
 #define CLOFN_PHSIZE_MAX 1024
 #define _CLOFN_SCIENCE_NUMBER 0x58ffffbffdffffafULL
@@ -45,7 +54,7 @@ extern "C" {
 #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
 #include <sys/user.h>
-    static inline bool _clofn_active_memory(void *ptr, size_t size) {
+    static inline __bool__ _clofn_active_memory(void *ptr, size_t size) {
         return mprotect((void *)(((size_t)ptr >> PAGE_SHIFT) << PAGE_SHIFT), size, PROT_READ | PROT_EXEC | PROT_WRITE) == 0;
     }
 #elif defined(_WIN32)
@@ -56,7 +65,7 @@ extern "C" {
 #pragma warning(disable : 4996)
 #endif
 #include <windows.h>
-    static inline bool _clofn_active_memory(void *ptr, size_t size) {
+    static inline __bool__ _clofn_active_memory(void *ptr, size_t size) {
         DWORD old_protect;
         return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect);
     }
@@ -152,45 +161,75 @@ extern "C" {
         return instance;
     }
 
+// end clofn ====================================
+
+// wobj =========================================
+
+#if defined(public)
+#undef public
+#endif
+
+#if defined(private)
+#undef private
+#endif
+
+#if defined(wobj)
+#undef wobj
+#endif
+
+#if defined(func)
+#undef func
+#endif
+
+#if defined(multi)
+#undef multi
+#endif
+
+#ifndef __VAARGS
+#define __VAARGS(...) ,##__VA_ARGS__
+#endif
+
+#ifndef _wobj_root_
 #if defined(wobj_use_other)
 #define _wobj_root_ wobj_use_other
-#elif (defined (wobj_this) || (this) || (use_this)) && !defined (__cplusplus)
+#elif (defined (wobj_this) || defined(this) || defined(use_this)) && !defined(__cplusplus)
 #define _wobj_root_ this // exclude C++
 #else
 #define _wobj_root_ self // default
 #endif
+#endif
 
-#define WOBJ_MALLOC   0x1
-#define WOBJ_CALLOC   0x2
-#define WOBJ_REALLOC  0x4
+#define WOBJ_MALLOC   0x0001
+#define WOBJ_CALLOC   0x0002
+#define WOBJ_REALLOC  0x0004
 
-    struct __wobj_mem__ {
+    struct _wobj_mem {
         void *ptr;
-        struct __wobj_mem__ *next;
+        struct _wobj_mem *next;
     };
 
-    static void *__wobj_allocate__(struct __wobj_mem__ **mem, uint8_t type, size_t count, size_t size, void *ptr)
+    static void *__wobj_alloc(struct _wobj_mem **mem, uint8_t type, size_t count, size_t size, void *ptr)
     {
         if (*mem == NULL) return NULL;
         switch (type) {
             case WOBJ_MALLOC: {
-                struct __wobj_mem__ *c = *mem;
-                *mem = malloc(sizeof(struct __wobj_mem__));
+                struct _wobj_mem *c = *mem;
+                *mem = malloc(sizeof(struct _wobj_mem));
                 (*mem)->ptr = malloc(size);
                 (*mem)->next = c;
                 return (*mem)->ptr;
             }
             case WOBJ_CALLOC: {
-                struct __wobj_mem__ *c = *mem;
-                *mem = malloc(sizeof(struct __wobj_mem__));
+                struct _wobj_mem *c = *mem;
+                *mem = malloc(sizeof(struct _wobj_mem));
                 (*mem)->ptr = calloc(count, size);
                 (*mem)->next = c;
                 return (*mem)->ptr;
             }
             case WOBJ_REALLOC: {
-                for (struct __wobj_mem__ *c = *mem, *p = NULL; c != NULL;)
+                for (struct _wobj_mem *c = *mem, *p = NULL; c != NULL;)
                 {
-                    struct __wobj_mem__ *n = c->next;
+                    struct _wobj_mem *n = c->next;
                     if (c->ptr == ptr) {
                         if (size <= 0) {
                             free(ptr);
@@ -214,130 +253,117 @@ extern "C" {
         return NULL;
     }
 
-#define __wobj_va_args__(...) ,##__VA_ARGS__
+#define public(...) __VA_ARGS__
+#define private(...) __VA_ARGS__
+#define multi(...) __VA_ARGS__
+
+#define func(func_name, args) (* func_name) args
+#define func_ex(func_name, ex) (ex * func_name)
 
 #define wobj_decl(name) \
-    typedef struct __wobj_##name##__public__ *name;
-    
-#define wobj(name, public_body, private_body, ...) \
-    typedef struct __wobj_##name##__public__ *name; \
-    struct __wobj_##name##__public__ public_body; \
-    typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
-    struct __wobj_##name { \
-        struct public_body; \
-        struct private_body; \
-    }; \
-    struct __wobj_##name##__data__ { \
-        struct public_body; \
-        struct private_body; \
-        struct __wobj_mem__ *__mem; \
-    }; \
-    struct __wobj_##name##__public__ *__wobj_##name##__init__(); \
-    void __wobj_##name##__free__(void **__in__);
+    typedef struct __wobj_##name *name
 
-#define wobj_np(name, public_body, ...) \
-    typedef struct __wobj_##name##__public__ *name; \
-    struct __wobj_##name##__public__ public_body; \
-    typedef name *lp##name __wobj_va_args__(__VA_ARGS__); \
-    struct __wobj_##name { \
-        struct public_body; \
+#define wobj(name, public, ...) \
+    typedef struct __wobj_##name { \
+        struct { char : 0; public }; \
+    } *name; \
+    struct __wobj_P_##name { \
+        struct { char : 0; public }; \
+        struct { char : 0; __VA_ARGS__ }; \
     }; \
-    struct __wobj_##name##__data__ { \
-        struct public_body; \
-        struct __wobj_mem__ *__mem; \
+    struct __wobj_F_##name { \
+        struct { char : 0; public }; \
+        struct { char : 0; __VA_ARGS__ }; \
+        struct _wobj_mem *__mem; \
     }; \
-    
-#define wobj_def(name, type, func, args, body) \
-    static type __wobj_##name##_##func args { \
+    struct __wobj_##name *__wobj_init_##name(); \
+    void __wobj_free_##name(void **__in__);
+
+#define wobj_def(name, func_name, args, body) \
+     __wobj_##name##_##func_name args { \
         volatile size_t __closize = (size_t)_CLOFN_SCIENCE_NUMBER; \
-        struct __wobj_##name##__data__ *__wobj = (struct __wobj_##name##__data__*)__closize; \
-        struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)__wobj; \
+        struct __wobj_F_##name *__wobj = (struct __wobj_F_##name*)__closize; \
+        struct __wobj_P_##name *_wobj_root_ = (struct __wobj_P_##name*)__wobj; \
         body \
     } \
-    static size_t __wobj_##name##_##func##__phsize__ = 0; \
-    static size_t __wobj_##name##_##func##__phhash__ = 0;
+    static size_t __wobj_phsize_##name##_##func_name = 0; \
+    static size_t __wobj_phhash_##name##_##func_name = 0;
+
+#define wobj_set(name, func_name) \
+    _wobj_root_->func_name = (void*)__wobj_new_clofn__(__wobj_##name##_##func_name, &(__wobj_phsize_##name##_##func_name), (void*)_wobj_root_); \
+    { \
+        struct _wobj_mem *__new = malloc(sizeof(struct _wobj_mem)); \
+        __new->ptr = _wobj_root_->func_name; \
+        __new->next = __wobj->__mem; \
+        __wobj->__mem = __new; \
+    }
 
 #define wobj_init(name, args_new, body_init, body_free) \
-    struct __wobj_##name##__public__ *__wobj_##name##__init__ args_new { \
-        struct __wobj_##name##__data__ *__wobj = (struct __wobj_##name##__data__*)malloc(sizeof(struct __wobj_##name##__data__)); \
+    struct __wobj_##name *__wobj_init_##name args_new { \
+        struct __wobj_F_##name *__wobj = (struct __wobj_F_##name*)malloc(sizeof(struct __wobj_F_##name)); \
         if (!__wobj) return NULL; \
-        __wobj->__mem = malloc(sizeof(struct __wobj_mem__)); \
+        __wobj->__mem = malloc(sizeof(struct _wobj_mem)); \
         __wobj->__mem->ptr = __wobj; \
         __wobj->__mem->next = NULL; \
-        struct __wobj_##name *_wobj_root_ = (struct __wobj_##name *)__wobj; \
+        struct __wobj_P_##name *_wobj_root_ = (struct __wobj_P_##name*)__wobj; \
         body_init \
-        return (struct __wobj_##name##__public__*)_wobj_root_; \
+        return (struct __wobj_##name*)_wobj_root_; \
     } \
-    void __wobj_##name##__free__(void **__in__) { \
+    void __wobj_free_##name(void **__in__) { \
+        if (!__in__ || !(*__in__)) return; \
         struct __wobj_##name * _wobj_root_ = *__in__; \
-        if (!_wobj_root_) return; \
-        struct __wobj_##name##__data__ *__wobj = (struct __wobj_##name##__data__*)_wobj_root_; \
+        struct __wobj_F_##name *__wobj = (struct __wobj_F_##name*)_wobj_root_; \
         body_free \
-        for (struct __wobj_mem__ *mem = __wobj->__mem;mem != NULL;) { \
-            struct __wobj_mem__ *next = mem->next; \
+        for (struct _wobj_mem *mem = __wobj->__mem; mem != NULL; ) { \
+            struct _wobj_mem *next = mem->next; \
             free(mem->ptr); \
             free(mem); \
             mem = next; \
         } \
-        *__in__ = NULL; \
-    }
-
-#define wobj_set(name, func) \
-    _wobj_root_->func = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_##name##_##func##__phsize__), (void*)_wobj_root_); \
-    { \
-        struct __wobj_mem__ *__new__ = malloc(sizeof(struct __wobj_mem__)); \
-        __new__->ptr = _wobj_root_->func; \
-        __new__->next = __wobj->__mem; \
-        __wobj->__mem = __new__; \
-    }
-
-#define wobj_public(public_name) struct __wobj_##public_name##__public__ public_name
-
-#define wobj_setp(name, public_name, func) \
-    _wobj_root_->public_name.func = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_##name##_##func##__phsize__), (void*)_wobj_root_); \
-    { \
-        struct __wobj_mem__ *__new__ = malloc(sizeof(struct __wobj_mem__)); \
-        __new__->ptr = _wobj_root_->public_name.func; \
-        __new__->next = __wobj->__mem; \
-        __wobj->__mem = __new__; \
+        *__in__ = self = NULL; \
     }
 
 // internal allocate
 #define __wobj_imem (__wobj->__mem)
-#define wobj_malloc(size)           __wobj_allocate__(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL)
-#define wobj_calloc(count, size)    __wobj_allocate__(&__wobj_imem, WOBJ_CALLOC,  count, size,     NULL)
-#define wobj_realloc(ptr, new_size) __wobj_allocate__(&__wobj_imem, WOBJ_REALLOC, 0,     new_size, ptr)
-#define wobj_unalloc(ptr)           __wobj_allocate__(&__wobj_imem, WOBJ_REALLOC, 0,     0,        ptr)
-#define wobj_alloc(size)     memset(__wobj_allocate__(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
+#define wobj_malloc(size)           __wobj_alloc(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL)
+#define wobj_calloc(count, size)    __wobj_alloc(&__wobj_imem, WOBJ_CALLOC,  count, size,     NULL)
+#define wobj_realloc(ptr, new_size) __wobj_alloc(&__wobj_imem, WOBJ_REALLOC, 0,     new_size, ptr)
+#define wobj_unalloc(ptr)           __wobj_alloc(&__wobj_imem, WOBJ_REALLOC, 0,     0,        ptr)
+#define wobj_alloc(size)     memset(__wobj_alloc(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
 
 // external allocate
-#define __wobj_omem(name, var) (((struct __wobj_##name##__data__*)var)->__mem)
-#define wobj_malloco(name, var, size)          __wobj_allocate__(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL)
-#define wobj_calloco(name, var, count, size)    __wobj_allocate__(&__wobj_omem(name, var), WOBJ_CALLOC,  count, size,     NULL)
-#define wobj_realloco(name, var, ptr, new_size) __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     new_size, ptr)
-#define wobj_unalloco(name, var, ptr)           __wobj_allocate__(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     0,        ptr)
-#define wobj_alloco(name, var, size)     memset(__wobj_allocate__(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
+#define __wobj_omem(name, var) (((struct __wobj_F_##name*)var)->__mem)
+#define wobj_malloco(name, var, size)           __wobj_alloc(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL)
+#define wobj_calloco(name, var, count, size)    __wobj_alloc(&__wobj_omem(name, var), WOBJ_CALLOC,  count, size,     NULL)
+#define wobj_realloco(name, var, ptr, new_size) __wobj_alloc(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     new_size, ptr)
+#define wobj_unalloco(name, var, ptr)           __wobj_alloc(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     0,        ptr)
+#define wobj_alloco(name, var, size)     memset(__wobj_alloc(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
 
-#define wobj_new(name, var_name, ...) struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__(__VA_ARGS__)
-#define wobj_new2(name, var_name)     struct __wobj_##name##__public__ *var_name = __wobj_##name##__init__
-#define wobj_new3(name, ...)                 __wobj_##name##__init__(__VA_ARGS__)
-#define wobj_new4(name)                      __wobj_##name##__init__
-    
-#define wobj_free(name, var_name)            __wobj_##name##__free__((void**)&(var_name))
+#define wobj_new(name, var_name, ...) struct __wobj_##name *var_name = __wobj_init_##name(__VA_ARGS__)
+#define wobj_new2(name, var_name)     struct __wobj_##name *var_name = __wobj_init_##name
+#define wobj_new3(name, ...)                 __wobj_init_##name(__VA_ARGS__)
+#define wobj_new4(name)                      __wobj_init_##name
 
-#define wobj_sizeof(name) (sizeof(struct __wobj_##name##__public__))
-#define wobj_sizeoff(name) (sizeof(struct __wobj_##name))
-#define wobj_sizeofv(var) (sizeof(*var))
+#define wobj_free(name, var_name)            __wobj_free_##name((void**)&(var_name))
 
-#define wobj_fn(type, func_name, args) type (*func_name) args
-#if defined(WIN32) || defined(_WIN32) || defined(_WINDOWS)
-#define wobj_fn_ex(type, ex, func_name, args) type (ex*func_name) args
-#else
-#define wobj_fn_ex(type, ex, func_name, args) ex type (*func_name) args
-#endif
+#define wobj_sizeof(name)  (sizeof(struct __wobj_##name))
+#define wobj_sizeoff(name) (sizeof(struct __wobj_P_##name))
+#define wobj_sizeofv(var)  (sizeof(*var))
+
+#define wobj_public(public_name) struct __wobj_##public_name public_name
+
+#define wobj_setp(name, public_name, func_name) \
+    _wobj_root_->public_name.func_name = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_phsize_##name##_##func_name), (void*)_wobj_root_); \
+    { \
+        struct _wobj_mem *__new = malloc(sizeof(struct _wobj_mem)); \
+        __new__->ptr = _wobj_root_->public_name.func_name; \
+        __new__->next = __wobj->__mem; \
+        __wobj->__mem = __new; \
+    }
+
+// end wobj =====================================
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // !_wobj_h_
+#endif // !_WOBJ_H_
