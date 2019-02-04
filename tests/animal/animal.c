@@ -1,6 +1,6 @@
 #include "animal.h"
 
-wobj_def(Animal, void, speak, (void),
+void wobj_def(Animal, speak, (void),
 {
     printf("The %s :: weight: %d, power: %d.\n",
         self->name,
