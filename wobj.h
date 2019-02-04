@@ -232,6 +232,8 @@ extern "C" {
         struct private_body; \
         struct __wobj_mem__ *__mem; \
     }; \
+    struct __wobj_##name##__public__ *__wobj_##name##__init__(); \
+    void __wobj_##name##__free__(void **__in__);
 
 #define wobj_np(name, public_body, ...) \
     typedef struct __wobj_##name##__public__ *name; \
