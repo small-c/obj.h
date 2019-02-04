@@ -1,19 +1,22 @@
 #include "wobj.h"
 
-// declare Dog object (use wobj_np for no private)
-wobj_np(Dog, {
+// declare Dog object, has no private
+wobj(Dog,
+    public
+    (
+        uint32_t weight; // property
+        char *name;
+        void func(speak, ()); // method
+    )
+);
 
-    uint32_t weight; // property
-    char *name;
-    wobj_fn(void, speak, ()); // method
-
-} /*; you can declare new type here as Dog */);
-
-// define 'speak' method, like: void Dog.speak(void) 
-wobj_def(Dog, void, speak, (void), {
-    printf("I'm %s, my weight is %dkg.\n",
-        self->name, self->weight);
-})
+// define 'speak' method
+void wobj_def(Dog, speak, (void),
+    {
+        printf("I'm %s, my weight is %dkg.\n",
+            self->name, self->weight);
+    }
+)
 
 // init Dog
 wobj_init(Dog, (const char* name, uint32_t weight), {
@@ -39,6 +42,5 @@ int main(void) {
     // << I'm Crazy Dog!, my weight is 32kg.
     wobj_free(Dog, dog_foo); // free dog_foo
 
-    puts("done!\n");
-    return 0;
+    puts("done!");
 }
