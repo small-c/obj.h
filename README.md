@@ -30,26 +30,62 @@
 ### my technologies
 
 ```elm
-class:                                       /* God */
-    - public:  {...}                             |
-    - private: {...}                             |
-    - mem:     [linked list]                     |
-         ----                                    |
-method: [data] cloure(#p1, #p2, ...)             |
-           |    > mem   <-- [allocate]           v
-           +----> public, private -> [internal] --------+
------------------+-------------------+-----------+      v
-                 |                   v              ----------
-                 v               interface: public, init, free
-alloc: [ ] -> [object] --+-----------------+-----------------+
-position:         ...  3 |               2 |               1 |
-                         v                 v                 v
-linked list: [...] -> [ mem | next ] -> [ mem | next ] -> [ mem | null ]
-                       1 |                 |                 |
-                       2 | <---------------+                 |
-                       3 | <---------------------------------+
-                     ... v 
-free:  [x] <-------- [object]
+$object {
+    public:  (...) +---------------> [USER/EXTERNAL]
+    private: (...)                         ^
+    mem:   [linked list]                   |
+} *self;      -- + --         +------------+
+     +----->   [ v ]          |
+dynamic _      [ v ]  <--+ method: closure [self] (arg_1, arg_2, ...)
+allocate +---> [ v ]                  |       \-----> { function }
+                ...                   v
+#new: init() -> object  | +-----> [INTERNAL]
+#free: uninit() + GC()  |
+```
+
+### example
+
+- Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
+
+```c++
+// C + wobj                           |   // C++
+#include "wobj.h"                     |   #include <stdio.h>
+                                      |   
+wobj(FOO,                             |   class FOO {
+public (                              |   public:
+                                      |       FOO(int bar);
+                                      |       ~FOO();
+    int  bar;                         |       int  bar;
+    void func(set, (int val));        |       void set(int val);
+    int  func(get, ());               |       int  get();
+),                                    |
+private (                             |   private:
+    int val;                          |       int val;
+))                                    |   }
+                                      |   
+void wobj_def(FOO, set, (int val), {  |   void FOO::set(int val) {
+    self->value = val;                |       this->val = val;
+})                                    |   }
+                                      |   
+int wobj_def(FOO, get, (), {          |   int FOO:get() {
+    return self->val;                 |       return this->val;
+})                                    |   }
+                                      |
+wobj_init(FOO, (int bar), {           |   FOO:FOO(int bar) {
+    self->bar = bar;                  |       this->bar = bar;
+    wobj_set(FOO, get);               |   }
+    wobj_set(FOO, set);               |       
+}, {                                  |   FOO::~FOO() {
+    puts("freeing...");               |        puts("freeing...");
+})                                    |   }
+                                      |
+int main() {                          |   int main() {
+    wobj_new(FOO, foo, 10);           |       FOO *foo = new FOO(10);
+    foo->set(55);                     |       foo->set(55);
+    int bar = foo->bar,               |       int bar = foo->bar,
+        val = foo->get();             |           val = foo->get;
+    wobj_free(FOO, foo);              |       delete foo;
+}                                     |   }
 ```
 
 ## usage
@@ -147,51 +183,6 @@ void *wobj_malloco  (name, var_name, size_t size);
 void *wobj_calloco  (name, var_name, size_t count, size_t size);
 void *wobj_ralloco  (name, var_name, void *ptr, size_t new_size);
 void  wobj_unalloco (name, var_name, void *ptr);
-```
-
-### example
-
-- Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
-
-```c++
-// C + wobj                           |   // C++
-#include "wobj.h"                     |   #include <stdio.h>
-                                      |   
-wobj(FOO,                             |   class FOO {
-public (                              |   public:
-                                      |       FOO(int bar);
-                                      |       ~FOO();
-    int  bar;                         |       int  bar;
-    void func(set, (int val));        |       void set(int val);
-    int  func(get, ());               |       int  get();
-),                                    |
-private (                             |   private:
-    int val;                          |       int val;
-))                                    |   }
-                                      |   
-void wobj_def(FOO, set, (int val), {  |   void FOO::set(int val) {
-    self->value = val;                |       this->val = val;
-})                                    |   }
-                                      |   
-int wobj_def(FOO, get, (), {          |   int FOO:get() {
-    return self->val;                 |       return this->val;
-})                                    |   }
-                                      |
-wobj_init(FOO, (int bar), {           |   FOO:FOO(int bar) {
-    self->bar = bar;                  |       this->bar = bar;
-    wobj_set(FOO, get);               |   }
-    wobj_set(FOO, set);               |       
-}, {                                  |   FOO::~FOO() {
-    puts("freeing...");               |        puts("freeing...");
-})                                    |   }
-                                      |
-int main() {                          |   int main() {
-    wobj_new(FOO, foo, 10);           |       FOO *foo = new FOO(10);
-    foo->set(55);                     |       foo->set(55);
-    int bar = foo->bar,               |       int bar = foo->bar,
-        val = foo->get();             |           val = foo->get;
-    wobj_free(FOO, foo);              |       delete foo;
-}                                     |   }
 ```
 
 ### License: MIT
