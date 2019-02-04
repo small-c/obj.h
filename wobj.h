@@ -311,7 +311,7 @@ extern "C" {
     } \
     void __wobj_free_##name(void **__in__) { \
         if (!__in__ || !(*__in__)) return; \
-        struct __wobj_##name * _wobj_root_ = *__in__; \
+        struct __wobj_P_#name * _wobj_root_ = *__in__; \
         struct __wobj_F_##name *__wobj = (struct __wobj_F_##name*)_wobj_root_; \
         body_free \
         for (struct _wobj_mem *mem = __wobj->__mem; mem != NULL; ) { \
@@ -353,11 +353,11 @@ extern "C" {
 #define wobj_public(public_name) struct __wobj_##public_name public_name
 
 #define wobj_setp(name, public_name, func_name) \
-    _wobj_root_->public_name.func_name = (void*)__wobj_new_clofn__(__wobj_##name##_##func, &(__wobj_phsize_##name##_##func_name), (void*)_wobj_root_); \
+    _wobj_root_->public_name.func_name = (void*)__wobj_new_clofn__(__wobj_##name##_##func_name, &(__wobj_phsize_##name##_##func_name), (void*)_wobj_root_); \
     { \
         struct _wobj_mem *__new = malloc(sizeof(struct _wobj_mem)); \
-        __new__->ptr = _wobj_root_->public_name.func_name; \
-        __new__->next = __wobj->__mem; \
+        __new->ptr = _wobj_root_->public_name.func_name; \
+        __new->next = __wobj->__mem; \
         __wobj->__mem = __new; \
     }
 
