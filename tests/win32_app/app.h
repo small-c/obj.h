@@ -1,39 +1,45 @@
-#ifndef _wobj_test_app_
-#define _wobj_test_app_
+#ifndef _WOBJ_TEST_APP_
+#define _WOBJ_TEST_APP_
 #pragma once
+
 #include <windows.h>
 #include <windowsx.h>
 #include "wobj.h"
 
-wobj(GUI, {
+wobj(GUI,
+    public
+    (
+        HWND    hwnd;
+        // event handler, user custom
+        void func(on_click, (GUI self, int x, int y));
+        void func(on_close, (GUI self));
 
-    HWND	hwnd;
-    // event handler, user custom
-    wobj_fn(void, on_click, (GUI self, int x, int y));
-    wobj_fn(void, on_close, (GUI self));
+        // method
+        void func(show, (bool is_show));
+        void func(close, (void));
+        void func(set_title, (const char *title));
+    ),
+    private
+    (
+        // window proc
+        WNDPROC proc;
+    )
+)
 
-    // method
-    wobj_fn(void, show, (bool is_show));
-    wobj_fn(void, close, (void));
-    wobj_fn(void, set_title, (const char *title));
-}, {
-    // window proc
-    WNDPROC proc;
-})
+wobj(Button,
+    public
+    (
+        HWND hwnd;
+        GUI gui; // gui parent
+    ),
+    private 
+    (
+        void func(on_click, (Button self)); // users'
+        WNDPROC proc_old;
 
-wobj(Button, {
-
-    HWND hwnd;
-    GUI gui; // gui parent
-
-}, {
-
-    wobj_fn(void, on_click, (Button self)); // users'
-    WNDPROC proc_old;
-
-    WNDPROC proc;
-
-})
+        WNDPROC proc;
+    )
+)
 
 // ==============================================
 
@@ -44,4 +50,4 @@ void freeButton(Button btn);
 int PUTS(const char *fmt, ...);
 void runMessageLoop();
 
-#endif // !_wobj_test_app_
+#endif // !_WOBJ_TEST_APP_
