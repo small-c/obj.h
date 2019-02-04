@@ -3,7 +3,7 @@
 // rectangle
 #define RECTANGLE_AREA(width, height) (width * height)
 
-wobj_def(_Rectangle, void, print_area, (void),
+void wobj_def(_Rectangle, print_area, (void),
 {
     printf("area of rectangle is %d\n", RECTANGLE_AREA(self->width, self->height));
 })
@@ -21,7 +21,7 @@ wobj_init(_Rectangle, (int width, int height),
 #define PI 3.1415926
 #define CIRCLE_AREA(radius) (radius * radius * PI)
 
-wobj_def(_Circle, void, print_area, (void),
+void wobj_def(_Circle, print_area, (void),
 {
     printf("area of circle is %g\n", CIRCLE_AREA(self->radius));
 })
