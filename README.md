@@ -151,7 +151,7 @@ void  wobj_unalloco (name, var_name, void *ptr);
 
 ### example
 
-- Comparison between **C** and **C++**, see [**test.c**](https://github.com/wy3/wobj/blob/master/tests/test.c) for details.
+- Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
 
 ```c++
 // C + wobj                           |   // C++
