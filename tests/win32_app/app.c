@@ -4,22 +4,22 @@
 
 #define WOBJ_GUICLASS ("wobj.GUI")
 
-wobj_def(GUI, void, show, (bool is_show),
+void wobj_def(GUI, show, (bool is_show),
 {
     ShowWindow(self->hwnd, (is_show ? SW_SHOW : SW_HIDE));
 })
 
-wobj_def(GUI, void, close, (void), {
+void wobj_def(GUI, close, (void), {
     CloseWindow(self->hwnd);
 })
 
-wobj_def(GUI, void, set_title, (const char *title),
+void wobj_def(GUI, set_title, (const char *title),
 {
     PUTS("change title to `%s`\n", title);
     SetWindowTextA(self->hwnd, title);
 })
 
-wobj_def(GUI, LRESULT, proc, (HWND hwnd, UINT msg, WPARAM wp, LPARAM lp),
+LRESULT wobj_def(GUI, proc, (HWND hwnd, UINT msg, WPARAM wp, LPARAM lp),
 {
     switch (msg) {
         case WM_LBUTTONUP: {
@@ -51,8 +51,8 @@ wobj_init(GUI, (const char *title, int x, int y, int width, int height),
     wobj_set(GUI, proc);
 
     WNDCLASSEXA wcex    = { sizeof(WNDCLASSEXA) };
-    wcex.lpfnWndProc	= self->proc;
-    wcex.style			= CS_HREDRAW | CS_VREDRAW;
+    wcex.lpfnWndProc    = self->proc;
+    wcex.style          = CS_HREDRAW | CS_VREDRAW;
     wcex.lpszClassName  = WOBJ_GUICLASS;
     wcex.hCursor        = LoadCursorA(NULL, MAKEINTRESOURCEA(IDC_ARROW));
     RegisterClassExA(&wcex);
@@ -82,7 +82,7 @@ GUI freeGUI(GUI gui)
 
 // Button =======================================
 
-wobj_def(Button, LRESULT, proc, (HWND hwnd, UINT msg, WPARAM wp, LPARAM lp),
+LRESULT wobj_def(Button, proc, (HWND hwnd, UINT msg, WPARAM wp, LPARAM lp),
 {
     switch (msg) {
         case WM_LBUTTONUP: {
@@ -108,8 +108,8 @@ wobj_init(Button, (GUI gui, const char *text, int x, int y, void(*on_click)(Butt
         gui->hwnd, NULL, NULL, NULL
     );
 
-    self->hwnd	   = hwnd;
-    self->gui	   = gui;
+    self->hwnd     = hwnd;
+    self->gui      = gui;
     self->on_click = on_click;
     self->proc_old = (WNDPROC)SetWindowLongPtrA(hwnd, GWLP_WNDPROC, (LONG_PTR)self->proc);
 
