@@ -1,24 +1,24 @@
 #include "wobj.h"
 
 wobj(Test,
-    {
+    public (
         const int value;
         
-        wobj_fn(void*, get, ());
-        wobj_fn(void, kill, ());
-    },
-    {
+        void* func(get, ());
+        void func(kill, ());
+    ),
+    private (
         void *reserved;
-    }
+    )
 )
 
-wobj_def(Test, void*, get, (),
+void* wobj_def(Test, get, (),
     {
         return self->reserved;
     }
 )
 
-wobj_def(Test, void, kill, (),
+void wobj_def(Test, kill, (),
     {
         puts("kill itself");
         wobj_free(Test, self);
