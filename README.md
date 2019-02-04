@@ -70,20 +70,16 @@ Before `#include ..`, add `#define wobj_this` to use `this` instead of `self`
 ### declare object
 
 ```c
-wobj_decl(name)
+wobj_decl(name);
 
-wobj(name, {
-// public:
-
-}, {
-// private:
-
-})
-
-wobj_np(name, {
-// public:
-
-})
+wobj(name,
+    public (
+    
+    ),
+    private (
+    
+    )
+)
 ```
 
 ### public from... (please see [shape example](https://github.com/small-c/wobj/tree/master/tests/shape))
@@ -95,12 +91,12 @@ wobj_public(public_name);
 ### define method
 
 ```c
-wobj_def(name, return_type, func_name, (args), {
+type wobj_def(name, func_name, (args), {
     // function body
 })
 
 // define method/function on struct
-wobj_fn(return_type, func_name, (args, ...));
+type func(func_name, (args, ...));
 ```
 
 ### init object
