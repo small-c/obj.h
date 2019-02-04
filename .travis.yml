@@ -16,6 +16,8 @@ script:
     - ./test
     - gcc -std=gnu99 -w -o foo -I. tests/foo/main.c
     - ./foo
+     - gcc -std=gnu99 -w -o kill_itself -I. tests/kill_itself/main.c
+    - ./kill_itself
     - gcc -std=gnu99 -w -o shape -I. tests/shape/main.c
     - ./shape
     - gcc -std=gnu99 -w -o animal -I. tests/animal/animal.c ./tests/animal/main.c
