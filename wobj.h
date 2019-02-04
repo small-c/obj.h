@@ -311,7 +311,7 @@ extern "C" {
     } \
     void __wobj_free_##name(void **__in__) { \
         if (!__in__ || !(*__in__)) return; \
-        struct __wobj_P_#name * _wobj_root_ = *__in__; \
+        struct __wobj_P_##name * _wobj_root_ = *__in__; \
         struct __wobj_F_##name *__wobj = (struct __wobj_F_##name*)_wobj_root_; \
         body_free \
         for (struct _wobj_mem *mem = __wobj->__mem; mem != NULL; ) { \
