@@ -8,7 +8,7 @@ wobj(_Shape,
     )
 );
 
-wobj_np(_Rectangle,
+wobj(_Rectangle,
     public (
         wobj_public(_Shape);
 
@@ -17,7 +17,7 @@ wobj_np(_Rectangle,
     )
 );
 
-wobj_np(_Circle,
+wobj(_Circle,
     public (
         wobj_public(_Shape);
 
