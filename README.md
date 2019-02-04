@@ -21,7 +21,7 @@
 </p>
 
 ### features
-- Self allocate with garbage collecor
+- Self allocate with garbage collector
 - Objects, classes
 - Public, private member
 - Data abstraction
