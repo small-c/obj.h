@@ -4,7 +4,7 @@
 
 wobj(_Shape,
     public (
-        wobj_fn (void, print_area, (void));
+        void func(print_area, (void));
     )
 );
 
