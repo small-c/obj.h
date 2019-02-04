@@ -13,28 +13,31 @@ wobj(Test,
 )
 
 wobj_def(Test, void*, get, (),
-{
-    return self->reserved;
-})
+    {
+        return self->reserved;
+    }
+)
 
 wobj_def(Test, void, kill, (),
-{
-    puts("kill itself");
-    wobj_free(Test, self);
-})
+    {
+        puts("kill itself");
+        wobj_free(Test, self);
+    }
+)
 
 wobj_init(Test, (void),
-{
-    wobj_set(Test, get);
-    wobj_set(Test, kill);
-    
-    *(int*)&self->value = rand();
-    self->reserved = malloc(sizeof(32));
-},
-{
-    free(self->reserved);
-    puts("freeing");
-})
+    {
+        wobj_set(Test, get);
+        wobj_set(Test, kill);
+
+        *(int*)&self->value = rand();
+        self->reserved = malloc(sizeof(32));
+    },
+    {
+        puts("freeing");
+        free(self->reserved);
+    }
+)
 
 int main() {
 
