@@ -6,6 +6,11 @@
 #include <windowsx.h>
 #include "wobj.h"
 
+// declare all
+wobj_decl(GUI);
+wobj_decl(Button);
+
+// GUI
 wobj(GUI,
     public
     (
@@ -26,6 +31,7 @@ wobj(GUI,
     )
 )
 
+// Button
 wobj(Button,
     public
     (
