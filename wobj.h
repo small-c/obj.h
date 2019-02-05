@@ -158,10 +158,6 @@ extern "C" {
 #define __VAARGS(...) ,##__VA_ARGS__
 #endif
 
-#ifndef __FIRSTARG
-#define __FIRSTARG(x, ...) x
-#endif
-
 #ifndef _wobj_root_
 #if defined(wobj_use_other)
 #define _wobj_root_ wobj_use_other
@@ -261,11 +257,11 @@ extern "C" {
     } *name; \
     __wobj_P(name) { \
         struct { char : 0; public }; \
-        struct { char : 0; __FIRSTARG(__VA_ARGS__) }; \
+        struct { char : 0; __VA_ARGS__ }; \
     }; \
     __wobj_F(name) { \
         struct { char : 0; public }; \
-        struct { char : 0; __FIRSTARG(__VA_ARGS__) }; \
+        struct { char : 0; __VA_ARGS__ }; \
         struct _wobj_mem *__mem; \
     }; \
     __wobj_G(name) *__wobj_n(name)(); \
@@ -343,7 +339,7 @@ extern "C" {
 #define wobj_sizeofv(var)  (sizeof(*var))
 
 // public from
-#define wobj_public(public_name) struct __wobj_##public_name public_name
+#define wobj_public(public_name) __wobj_G(public_name) public_name
 
 #define wobj_setp(name, public_name, func_name) \
     _wobj_root_->public_name.func_name = (void*)__wobj_new_clofn(__wobj_m(name, func_name), &(__wobj_s(name, func_name)), (void*)_wobj_root_); \
