@@ -8,16 +8,6 @@
         <a href="#"><img src="https://img.shields.io/badge/gc-✓-brightgreen.svg"></a>
         <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
     </p>
-    <h1></h1>
-    <p align="center">
-        <i>No programming technique solves all problems.</i><br>
-        <i>No programming language produces only correct results.</i><br>
-        <i>No programmer should start each project from scratch.</i><br>
-        <i>" OOC "</i>
-        <br>
-        <i>C++, Java, C# or other has OOP, why C does not?</i><br>
-    </p>
-    <h1></h1>
 </p>
 
 ### features
