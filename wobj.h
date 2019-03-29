@@ -44,7 +44,7 @@ extern "C" {
 
 #define WOBJ_VERSION ("1.1")
 
-// start clofn
+// start clofn [thanks to https://github.com/yulon/clofn]
 // ==============================================
 
 #define CLOFN_PHSIZE_MAX 1024
@@ -152,6 +152,10 @@ extern "C" {
 
 #if defined(multi)
 #undef multi
+#endif
+
+#if defined(new)
+#undef new
 #endif
 
 #ifndef __VAARGS
@@ -281,33 +285,33 @@ extern "C" {
 #define __WOBJ_EXPAND(x) x
 
 #define __WOBJ_SET_2(name, _1) \
-	wobj_set(name, _1)
+    wobj_set(name, _1)
 #define __WOBJ_SET_3(name, _1, _2) \
-	wobj_set(name, _1); wobj_set(name, _2)
+    wobj_set(name, _1); wobj_set(name, _2)
 #define __WOBJ_SET_4(name, _1, _2, _3) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3)
 #define __WOBJ_SET_5(name, _1, _2, _3, _4) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4)
 #define __WOBJ_SET_6(name, _1, _2, _3, _4, _5) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5)
 #define __WOBJ_SET_7(name, _1, _2, _3, _4, _5, _6) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6)
 #define __WOBJ_SET_8(name, _1, _2, _3, _4, _5, _6, _7) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7)
 #define __WOBJ_SET_9(name, _1, _2, _3, _4, _5, _6, _7, _8) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6), wobj_set(name, _7); wobj_set(name, _8)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6), wobj_set(name, _7); wobj_set(name, _8)
 #define __WOBJ_SET_10(name, _1, _2, _3, _4, _5, _6, _7, _8, _9) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9)
 #define __WOBJ_SET_11(name, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
-	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9); wobj_set(name, _10)
+    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9); wobj_set(name, _10)
 
 #define __WOBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, ...) _12
 #define __WOBJ_FR(argsWithParentheses) __WOBJ_FC argsWithParentheses
 #define __WOBJ_CF_ARGC(...) \
-	__WOBJ_FR((__VA_ARGS__, \
-		__WOBJ_SET_11, __WOBJ_SET_10, __WOBJ_SET_9, __WOBJ_SET_8, \
-		__WOBJ_SET_7, __WOBJ_SET_6, __WOBJ_SET_5, __WOBJ_SET_4, \
-		__WOBJ_SET_3, __WOBJ_SET_2, , ))
+    __WOBJ_FR((__VA_ARGS__, \
+        __WOBJ_SET_11, __WOBJ_SET_10, __WOBJ_SET_9, __WOBJ_SET_8, \
+        __WOBJ_SET_7, __WOBJ_SET_6, __WOBJ_SET_5, __WOBJ_SET_4, \
+        __WOBJ_SET_3, __WOBJ_SET_2, , ))
 
 #define __WOBJ_MC(...) __WOBJ_CF_ARGC(__VA_ARGS__ ())
 
@@ -366,6 +370,8 @@ extern "C" {
 #define wobj_new2(name, var_name)     __wobj_G(name) *var_name = __wobj_n(name)
 #define wobj_new3(name, ...)                                     __wobj_n(name)(__VA_ARGS__)
 #define wobj_new4(name)                                          __wobj_n(name)
+
+#define new(name, ...) __wobj_n(name)(__VA_ARGS__)
 
 #define wobj_free(name, var_name)     __wobj_f(name)((void**)&(var_name))
 
