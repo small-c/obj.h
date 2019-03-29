@@ -17,6 +17,14 @@
 - Data abstraction
 - Inheritance
 
+### platforms supported
+
+_ | GCC | MSVC | Clang
+-|:-:|:-:|:-:
+Windows | ✓ | ✓ | ✓
+Linux   | x86 / x86_64 | ✗ | x86
+Mac OSX | ✓ | ✗ | x86
+
 ### my technologies
 
 ```elm
@@ -138,6 +146,7 @@ wobj_init(name, (args_for_init), {
 ### set method function (in init)
 ```c
 wobj_set(name, func);
+wobj_sets(name, func_1, func_2, ...); // 10 is maximium
 
 // set method public from other, see tests/sphape example
 wobj_setp(name, public_name, func);
