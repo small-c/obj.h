@@ -277,6 +277,40 @@ extern "C" {
     static size_t __wobj_s(name, func_name) = 0; \
     static size_t __wobj_h(name, func_name) = 0;
 
+
+#define __WOBJ_EXPAND(x) x
+
+#define __WOBJ_SET_2(name, _1) \
+	wobj_set(name, _1)
+#define __WOBJ_SET_3(name, _1, _2) \
+	wobj_set(name, _1); wobj_set(name, _2)
+#define __WOBJ_SET_4(name, _1, _2, _3) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3)
+#define __WOBJ_SET_5(name, _1, _2, _3, _4) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4)
+#define __WOBJ_SET_6(name, _1, _2, _3, _4, _5) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5)
+#define __WOBJ_SET_7(name, _1, _2, _3, _4, _5, _6) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6)
+#define __WOBJ_SET_8(name, _1, _2, _3, _4, _5, _6, _7) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7)
+#define __WOBJ_SET_9(name, _1, _2, _3, _4, _5, _6, _7, _8) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6), wobj_set(name, _7); wobj_set(name, _8)
+#define __WOBJ_SET_10(name, _1, _2, _3, _4, _5, _6, _7, _8, _9) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9)
+#define __WOBJ_SET_11(name, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
+	wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9); wobj_set(name, _10)
+
+#define __WOBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, ...) _12
+#define __WOBJ_FR(argsWithParentheses) __WOBJ_FC argsWithParentheses
+#define __WOBJ_CF_ARGC(...) \
+	__WOBJ_FR((__VA_ARGS__, \
+		__WOBJ_SET_11, __WOBJ_SET_10, __WOBJ_SET_9, __WOBJ_SET_8, \
+		__WOBJ_SET_7, __WOBJ_SET_6, __WOBJ_SET_5, __WOBJ_SET_4, \
+		__WOBJ_SET_3, __WOBJ_SET_2, , ))
+
+#define __WOBJ_MC(...) __WOBJ_CF_ARGC(__VA_ARGS__ ())
+
 #define wobj_set(name, func_name) \
     _wobj_root_->func_name = (void*)__wobj_new_clofn(__wobj_m(name, func_name), &(__wobj_s(name, func_name)), (void*)_wobj_root_); \
     { \
@@ -285,6 +319,7 @@ extern "C" {
         __new->next = __wobj->__mem; \
         __wobj->__mem = __new; \
     }
+#define wobj_sets(name, ...) __WOBJ_EXPAND(__WOBJ_MC(name, __VA_ARGS__)(name, __VA_ARGS__))
 
 #define wobj_init(name, args_new, body_init, body_free) \
     __wobj_G(name) *__wobj_n(name) args_new { \
