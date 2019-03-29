@@ -35,7 +35,7 @@ allocate +---> [ v ]                  |       \-----> { function }
 
 ### example
 
-- Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
+Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
 
 ```c++
 // C + wobj                           |   // C++
@@ -73,7 +73,7 @@ int main() {                          |   int main() {
     wobj_new(FOO, foo, 10);           |       FOO *foo = new FOO(10);
     foo->set(55);                     |       foo->set(55);
     int bar = foo->bar,               |       int bar = foo->bar,
-        val = foo->get();             |           val = foo->get;
+        val = foo->get();             |           val = foo->get();
     wobj_free(FOO, foo);              |       delete foo;
 }                                     |   }
 ```
