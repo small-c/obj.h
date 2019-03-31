@@ -43,7 +43,8 @@ allocate +---> [ v ]                  |       \-----> { function }
 
 ### example
 
-Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
+- [w2d](https://github.com/wy3/wui/tree/master/w2d) - mini graphics object library for Windows
+- Comparison between **C** and **C++**, see [**foo.c**](https://github.com/wy3/wobj/blob/master/tests/foo.c) for details.
 
 ```c++
 // C + wobj                           |   // C++
