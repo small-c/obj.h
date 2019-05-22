@@ -186,4 +186,4 @@ void  wobj_unalloco (name, var_name, void *ptr);
 ```
 
 ### License: MIT
-- Give me something if it is useful ([click here](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CZ5C58TN4LY4L)).
+- Give me something if it is useful ([Paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CZ5C58TN4LY4L)).
