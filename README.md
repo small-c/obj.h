@@ -10,6 +10,8 @@
     </p>
 </p>
 
+In **C**, almost *OOFakes* based on pure struct like `self->do(self)`, but [**wobj**](https://github.com/small-c/wobj) hacks `self->do()`.
+
 ### features
 - Self allocate with garbage collector
 - Objects, classes
