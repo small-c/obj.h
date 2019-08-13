@@ -2,12 +2,12 @@
 
 wobj(Animal,
     public (
-        char   *name;
-		int    weight;
-        void   func(speak, ());
+        char  *name;
+        int   weight;
+        void  func(speak, ());
     ),
     private (
-        int    power;
+        int   power;
     )
 );
 
