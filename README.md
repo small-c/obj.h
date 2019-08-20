@@ -24,8 +24,8 @@ In **C**, almost *OOFakes* based on pure struct like `self->do(self)`, but [**wo
 _ | GCC | MSVC | Clang
 -|:-:|:-:|:-:
 Windows | ✓ | ✓ | ✓
-Linux   | x86 / x86_64 | ✗ | x86
-Mac OSX | ✓ | ✗ | x86
+Linux   | x86 / x86_64 |  | x86
+Mac OSX | ✓ |  | x86
 
 ### my technologies
 
