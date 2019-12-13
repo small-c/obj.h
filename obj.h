@@ -21,6 +21,9 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * Special thanks to clofn (https://github.com/yulon/clofn)
+ *
  */
 
 #ifndef _OBJ_H_
@@ -32,16 +35,13 @@
 #include <string.h>
 #include <stdint.h>
 
-// start clofn [thanks to https://github.com/yulon/clofn]
-// ==============================================
-
-#define CLOFN_PHSIZE_MAX 1024
-#define _CLOFN_SCIENCE_NUMBER 0x58ffffbffdffffafULL
+#define OBJ_MAX_PHSIZE  1024
+#define OBJ_SCI_NUM     0x58ffffbffdffffafULL
 
 #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
 #include <sys/user.h>
-#define __wobj_ativ_mem(ptr, size) \
+#define __obj_fixmem(ptr, size) \
     (mprotect((void *)(((size_t)ptr >> PAGE_SHIFT) << PAGE_SHIFT), size, PROT_READ | PROT_EXEC | PROT_WRITE) == 0)
 #elif defined(_WIN32)
 #if defined (_MSC_VER)
@@ -50,21 +50,26 @@
 #endif
 #pragma warning(disable : 4996)
 #endif
-#include <windows.h>
-    static inline int __wobj_ativ_mem(void *ptr, size_t size) {
-        DWORD old_protect;
+#if !defined(_WINDOWS_) || !defined(_INC_WINDOWS) || !defined(_MEMORYAPI_H_)
+int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNewProtect, unsigned long *lpflOldProtect);
+#endif
+#ifndef PAGE_EXECUTE_READWRITE
+#define PAGE_EXECUTE_READWRITE  0x40
+#endif
+    static inline int __obj_fixmem(void *ptr, size_t size) {
+		unsigned long old_protect;
         return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
     }
 #else
-#error Clofn: not support this OS!
+#error This OS is not supported!
 #endif
 
     static void *__wobj_new_clofn(void *prototype, size_t *phsize, void *data) {
 
         size_t offset = *phsize;
         if (!offset) {
-            for (; offset < CLOFN_PHSIZE_MAX; offset++) {
-                if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)_CLOFN_SCIENCE_NUMBER) {
+            for (; offset < OBJ_MAX_PHSIZE; offset++) {
+                if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)OBJ_SCI_NUM) {
                     if (!*phsize) {
                         *phsize = offset;
                     }
@@ -83,7 +88,7 @@
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(__i386) || defined(__i686__) || defined(__i686) || defined(_WIN32)
         size_t ihsize = offset + sizeof(void *) * 2 + 1;
 #else
-#error Clofn: not support this arch!
+#error This architecture is not supported!
 #endif
 
         void *instance = malloc(ihsize);
@@ -104,7 +109,7 @@
         current++;
         *(uint8_t *)current = 0xB8;
         current++;
-        *(uintptr_t *)current = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1; // 0x58 in _CLOFN_SCIENCE_NUMBER
+        *(uintptr_t *)current = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1;
         current += sizeof(uintptr_t);
         *(uint16_t *)current = 0xE0FF;
 #elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(__i386) || defined(__i686__) || defined(__i686) || defined(_WIN32)
@@ -115,12 +120,6 @@
 
         return instance;
     }
-
-// end clofn
-// ==============================================
-
-// start wobj
-// ==============================================
 
 #if defined(public)
 #undef public
