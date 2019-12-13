@@ -39,8 +39,6 @@ extern "C" {
 #include <string.h>
 #include <stdint.h>
 
-#define WOBJ_VERSION ("1.1")
-
 // start clofn [thanks to https://github.com/yulon/clofn]
 // ==============================================
 
