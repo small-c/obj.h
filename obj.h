@@ -23,16 +23,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _WOBJ_H_
-#define _WOBJ_H_
+#ifndef _OBJ_H_
+#define _OBJ_H_
 #pragma once
-
-#ifdef __cplusplus
-extern "C" {
-#define __bool__ bool
-#else
-#define __bool__ _Bool
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -58,9 +51,9 @@ extern "C" {
 #pragma warning(disable : 4996)
 #endif
 #include <windows.h>
-    static inline __bool__ __wobj_ativ_mem(void *ptr, size_t size) {
+    static inline int __wobj_ativ_mem(void *ptr, size_t size) {
         DWORD old_protect;
-        return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect);
+        return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
     }
 #else
 #error Clofn: not support this OS!
@@ -392,4 +385,4 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#endif // !_WOBJ_H_
+#endif
