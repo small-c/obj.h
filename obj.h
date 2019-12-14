@@ -35,16 +35,27 @@
 #include <string.h>
 #include <stdint.h>
 
-#define OBJ_MAX_PHSIZE  1024
-#define OBJ_SCI_NUM     0x58ffffbffdffffafULL
+#ifndef __VAARGS
+#define __VAARGS(...) ,##__VA_ARGS__
+#endif
+
+#ifndef __EXPAND
+#define __EXPAND(x) x
+#endif
+
+#define __OBJ_ERR(fmt, ...)    fprintf(stderr, "[obj.h] error: "fmt"\n" __VAARGS(__VA_ARGS__))
+
+#define __OBJ_MAXPHSIZE  1024
+#define __OBJ_SCINUMBER  0x58ffffbffdffffafULL
 
 #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
 #include <sys/user.h>
-#define __obj_fixmem(ptr, size) \
+#define __OBJ_ACTIV(ptr, size) \
     (mprotect((void *)(((size_t)ptr >> PAGE_SHIFT) << PAGE_SHIFT), size, PROT_READ | PROT_EXEC | PROT_WRITE) == 0)
 #elif defined(_WIN32)
 #if defined (_MSC_VER)
+#pragma comment(lib, "kernel32.lib")
 #if defined(DEBUG) || defined(_DEBUG)
 #error Clofn: not support MSVC on debug mode!
 #endif
@@ -56,29 +67,26 @@ int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNew
 #ifndef PAGE_EXECUTE_READWRITE
 #define PAGE_EXECUTE_READWRITE  0x40
 #endif
-    static inline int __obj_fixmem(void *ptr, size_t size) {
-		unsigned long old_protect;
-        return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
-    }
+static inline int __OBJ_ACTIV(void *ptr, size_t size) {
+    unsigned long old_protect;
+    return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
+}
 #else
 #error This OS is not supported!
 #endif
 
-    static void *__wobj_new_clofn(void *prototype, size_t *phsize, void *data) {
-
+    static void *__OBJ_CLOFN(void *prototype, size_t *phsize, void *data) {
         size_t offset = *phsize;
         if (!offset) {
-            for (; offset < OBJ_MAX_PHSIZE; offset++) {
-                if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)OBJ_SCI_NUM) {
+            for (; offset < __OBJ_MAXPHSIZE; offset++) {
+                if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)__OBJ_SCINUMBER) {
                     if (!*phsize) {
                         *phsize = offset;
                     }
-
                     goto mk;
                 }
             }
-
-            printf("Clofn: could't find closure declaration at prototype function (%p)!\n", prototype);
+			__OBJ_ERR("could't find closure declaration at prototype function (%p)!", prototype);
             return NULL;
         }
     mk:;
@@ -92,8 +100,8 @@ int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNew
 #endif
 
         void *instance = malloc(ihsize);
-        if (!__wobj_ativ_mem(instance, ihsize)) {
-            puts("Clofn: could't change memory type of C.malloc allocated!");
+        if (!__OBJ_ACTIV(instance, ihsize)) {
+			__OBJ_ERR("could't change memory type of C.malloc allocated!");
             free(instance);
             return NULL;
         }
@@ -121,6 +129,10 @@ int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNew
         return instance;
     }
 
+#if defined(class)
+#undef class
+#endif
+
 #if defined(public)
 #undef public
 #endif
@@ -145,237 +157,164 @@ int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNew
 #undef new
 #endif
 
-#ifndef __VAARGS
-#define __VAARGS(...) ,##__VA_ARGS__
+#if defined(obj_use) && (obj_use == this && !defined(__cplusplus))
+#define __OBJ_ROOT obj_use
+#else
+#define __OBJ_ROOT self
 #endif
 
-#ifndef _wobj_root_
-#if defined(wobj_use_other)
-#define _wobj_root_ wobj_use_other
-#elif (defined (wobj_this) || defined(this) || defined(use_this)) && !defined(__cplusplus)
-#define _wobj_root_ this // exclude C++
-#else
-#define _wobj_root_ self // default
-#endif
-#endif
+struct __OBJ_MEM {
+    void *ptr;
+    struct __OBJ_MEM *next;
+};
+
+static int __OBJ_APPEND(struct __OBJ_MEM **node, void *ptr) {
+	if (!ptr) return 0;
+	struct __OBJ_MEM *last = malloc(sizeof(struct __OBJ_MEM));
+	if (!last) { __OBJ_ERR("could't append memory to node list!"); return 0; }
+	last->ptr = ptr;
+	last->next = (*node);
+	(*node) = last;
+	return 1;
+}
+
+static void __OBJ_CLEAN(struct __OBJ_MEM *node) {
+	for (struct __OBJ_MEM *next, *last = node; last != NULL; ) {
+		next = last->next;
+		free(last->ptr);
+		free(last);
+		last = next;
+	}
+}
+
+#define none
+#define public(...)     __VA_ARGS__
+#define private(...)    __VA_ARGS__
+#define multiple(...)   __VA_ARGS__
 
 // ==========================
 
-#define WOBJ_MALLOC   0x0001
-#define WOBJ_CALLOC   0x0002
-#define WOBJ_REALLOC  0x0004
+#define __OBJ_PUB(n)	struct __OBJ__##n
+#define __OBJ_PRV(n)	struct __OBJ_PRV_##n
+#define __OBJ_ALL(n)	struct __OBJ_ALL_##n
 
-    struct _wobj_mem {
-        void *ptr;
-        struct _wobj_mem *next;
+#define __OBJ_M(n, f)	__OBJ__##n##_##f
+#define __OBJ_S(n, f)	__OBJ_S_##n##_##f
+#define __OBJ_H(n, f)	__OBJ_H_##n##_##f
+
+#define __OBJ_CON(n)	__OBJ_C_##n
+#define __OBJ_DES(n)	__OBJ_D_##n
+
+// ==========================
+
+#define decl_class(name) \
+    typedef __OBJ_PUB(name) *name
+
+#define class(name, public_members, ...) \
+    typedef __OBJ_PUB(name) { \
+        struct { char : 0; public_members }; \
+    } *name; \
+    __OBJ_PRV(name) { \
+        struct { char : 0; public_members }; \
+        struct { char : 0; __VA_ARGS__ }; \
+    }; \
+    __OBJ_ALL(name) { \
+        struct { char : 0; public_members }; \
+        struct { char : 0; __VA_ARGS__ }; \
+        struct __OBJ_MEM *__mem; \
     };
 
-    static void *__wobj_alloc(struct _wobj_mem **mem, uint8_t type, size_t count, size_t size, void *ptr)
-    {
-        if (*mem == NULL) return NULL;
-        switch (type) {
-            case WOBJ_MALLOC: {
-                struct _wobj_mem *c = *mem;
-                *mem = malloc(sizeof(struct _wobj_mem));
-                (*mem)->ptr = malloc(size);
-                (*mem)->next = c;
-                return (*mem)->ptr;
-            }
-            case WOBJ_CALLOC: {
-                struct _wobj_mem *c = *mem;
-                *mem = malloc(sizeof(struct _wobj_mem));
-                (*mem)->ptr = calloc(count, size);
-                (*mem)->next = c;
-                return (*mem)->ptr;
-            }
-            case WOBJ_REALLOC: {
-                for (struct _wobj_mem *c = *mem, *p = NULL; c != NULL;)
-                {
-                    struct _wobj_mem *n = c->next;
-                    if (c->ptr == ptr) {
-                        if (size <= 0) {
-                            free(ptr);
-                            if (p == NULL) {
-                                free(*mem);
-                                *mem = n;
-                            }
-                            else
-                                p->next = n; free(c);
-                            return NULL;
-                        }
-                        else
-                            return c->ptr = realloc(ptr, size);
-                    }
-                    p = c;
-                    c = n;
-                }
-                return NULL;
-            }
-        }
-        return NULL;
-    }
+#define prepare(class_name) \
+	volatile size_t __closn = (size_t)__OBJ_SCINUMBER; \
+	__OBJ_ALL(class_name) *__obj = (__OBJ_ALL(class_name)*)__closn; \
+	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)__obj
 
-// ==========================
+#define method(class_name, name, return_type) \
+	static size_t __OBJ_S(class_name, name) = 0; \
+    static size_t __OBJ_H(class_name, name) = 0; \
+	return_type __OBJ_M(class_name, name)
 
-#define public(...)  __VA_ARGS__
-#define private(...) __VA_ARGS__
-#define multi(...)   __VA_ARGS__
+#define __OBJ_s2(name, _1) \
+    obj_impl(name, _1)
+#define __OBJ_s3(name, _1, _2) \
+    obj_impl(name, _1); obj_impl(name, _2)
+#define __OBJ_s4(name, _1, _2, _3) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3)
+#define __OBJ_s5(name, _1, _2, _3, _4) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4)
+#define __OBJ_s6(name, _1, _2, _3, _4, _5) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5)
+#define __OBJ_s7(name, _1, _2, _3, _4, _5, _6) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5); obj_impl(name, _6)
+#define __OBJ_s8(name, _1, _2, _3, _4, _5, _6, _7) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5); obj_impl(name, _6); obj_impl(name, _7)
+#define __OBJ_s9(name, _1, _2, _3, _4, _5, _6, _7, _8) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5); obj_impl(name, _6), obj_impl(name, _7); obj_impl(name, _8)
+#define __OBJ_s10(name, _1, _2, _3, _4, _5, _6, _7, _8, _9) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5); obj_impl(name, _6); obj_impl(name, _7); obj_impl(name, _8); obj_impl(name, _9)
+#define __OBJ_s11(name, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
+    obj_impl(name, _1); obj_impl(name, _2); obj_impl(name, _3); obj_impl(name, _4); obj_impl(name, _5); obj_impl(name, _6); obj_impl(name, _7); obj_impl(name, _8); obj_impl(name, _9); obj_impl(name, _10)
 
-#define func(func_name, args) (* func_name) args
-#define func_ex(func_name, ex) (ex * func_name)
+#define __OBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, ...) _12
+#define __OBJ_FR(args) __OBJ_FC args
+#define __OBJ_CFA(...) \
+    __OBJ_FR((__VA_ARGS__, \
+        __OBJ_s11, __OBJ_s10, __OBJ_s9, __OBJ_s8, \
+        __OBJ_s7, __OBJ_s6, __OBJ_s5, __OBJ_s4, \
+        __OBJ_s3, __OBJ_s2, , ))
 
-// ==========================
+#define __OBJ_MC(...) __OBJ_CFA(__VA_ARGS__ ())
 
-#define __wobj_G(n) struct __wobj__##n
-#define __wobj_P(n) struct __wobj_P_##n
-#define __wobj_F(n) struct __wobj_F_##n
-
-#define __wobj_m(n, f) __wobj__##n##_##f
-#define __wobj_s(n, f) __wobj_s_##n##_##f
-#define __wobj_h(n, f) __wobj_h_##n##_##f
-
-#define __wobj_n(n) __wobj_n_##n
-#define __wobj_f(n) __wobj_f_##n
-
-// ==========================
-
-#define wobj_decl(name) \
-    typedef __wobj_G(name) *name
-
-#define wobj(name, public, ...) \
-    typedef __wobj_G(name) { \
-        struct { char : 0; public }; \
-    } *name; \
-    __wobj_P(name) { \
-        struct { char : 0; public }; \
-        struct { char : 0; __VA_ARGS__ }; \
-    }; \
-    __wobj_F(name) { \
-        struct { char : 0; public }; \
-        struct { char : 0; __VA_ARGS__ }; \
-        struct _wobj_mem *__mem; \
-    }; \
-    __wobj_G(name) *__wobj_n(name)(); \
-    void __wobj_f(name)(void **__in__);
-
-#define wobj_def(name, func_name, args, body) \
-     __wobj_m(name, func_name) args { \
-        volatile size_t __closize = (size_t)_CLOFN_SCIENCE_NUMBER; \
-        __wobj_F(name) *__wobj = (__wobj_F(name)*)__closize; \
-        __wobj_P(name) *_wobj_root_ = (__wobj_P(name)*)__wobj; \
-        body \
-    } \
-    static size_t __wobj_s(name, func_name) = 0; \
-    static size_t __wobj_h(name, func_name) = 0;
-
-
-#define __WOBJ_EXPAND(x) x
-
-#define __WOBJ_SET_2(name, _1) \
-    wobj_set(name, _1)
-#define __WOBJ_SET_3(name, _1, _2) \
-    wobj_set(name, _1); wobj_set(name, _2)
-#define __WOBJ_SET_4(name, _1, _2, _3) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3)
-#define __WOBJ_SET_5(name, _1, _2, _3, _4) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4)
-#define __WOBJ_SET_6(name, _1, _2, _3, _4, _5) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5)
-#define __WOBJ_SET_7(name, _1, _2, _3, _4, _5, _6) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6)
-#define __WOBJ_SET_8(name, _1, _2, _3, _4, _5, _6, _7) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7)
-#define __WOBJ_SET_9(name, _1, _2, _3, _4, _5, _6, _7, _8) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6), wobj_set(name, _7); wobj_set(name, _8)
-#define __WOBJ_SET_10(name, _1, _2, _3, _4, _5, _6, _7, _8, _9) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9)
-#define __WOBJ_SET_11(name, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
-    wobj_set(name, _1); wobj_set(name, _2); wobj_set(name, _3); wobj_set(name, _4); wobj_set(name, _5); wobj_set(name, _6); wobj_set(name, _7); wobj_set(name, _8); wobj_set(name, _9); wobj_set(name, _10)
-
-#define __WOBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, ...) _12
-#define __WOBJ_FR(argsWithParentheses) __WOBJ_FC argsWithParentheses
-#define __WOBJ_CF_ARGC(...) \
-    __WOBJ_FR((__VA_ARGS__, \
-        __WOBJ_SET_11, __WOBJ_SET_10, __WOBJ_SET_9, __WOBJ_SET_8, \
-        __WOBJ_SET_7, __WOBJ_SET_6, __WOBJ_SET_5, __WOBJ_SET_4, \
-        __WOBJ_SET_3, __WOBJ_SET_2, , ))
-
-#define __WOBJ_MC(...) __WOBJ_CF_ARGC(__VA_ARGS__ ())
-
-#define wobj_set(name, func_name) \
-    _wobj_root_->func_name = (void*)__wobj_new_clofn(__wobj_m(name, func_name), &(__wobj_s(name, func_name)), (void*)_wobj_root_); \
+#define obj_impl(class_name, method) \
     { \
-        struct _wobj_mem *__new = malloc(sizeof(struct _wobj_mem)); \
-        __new->ptr = _wobj_root_->func_name; \
-        __new->next = __wobj->__mem; \
-        __wobj->__mem = __new; \
-    }
-#define wobj_sets(name, ...) __WOBJ_EXPAND(__WOBJ_MC(name, __VA_ARGS__)(name, __VA_ARGS__))
-
-#define wobj_init(name, args_new, body_init, body_free) \
-    __wobj_G(name) *__wobj_n(name) args_new { \
-        __wobj_F(name) *__wobj = (__wobj_F(name)*)malloc(sizeof(__wobj_F(name))); \
-        if (!__wobj) return NULL; \
-        __wobj->__mem = malloc(sizeof(struct _wobj_mem)); \
-        __wobj->__mem->ptr = __wobj; \
-        __wobj->__mem->next = NULL; \
-        __wobj_P(name) *_wobj_root_ = (__wobj_P(name)*)__wobj; \
-        body_init \
-        return (__wobj_G(name)*)_wobj_root_; \
-    } \
-    void __wobj_f(name)(void **__in__) { \
-        if (!__in__ || !(*__in__)) return; \
-        __wobj_P(name) * _wobj_root_ = *__in__; \
-        __wobj_F(name) *__wobj = (__wobj_F(name)*)_wobj_root_; \
-        body_free \
-        for (struct _wobj_mem *mem = __wobj->__mem; mem != NULL; ) { \
-            struct _wobj_mem *next = mem->next; \
-            free(mem->ptr); \
-            free(mem); \
-            mem = next; \
-        } \
-        *__in__ = self = NULL; \
+		void *ptr = __OBJ_CLOFN(__OBJ_M(class_name, method), &(__OBJ_S(class_name, method)), (void*)__OBJ_ROOT); \
+		if (ptr) { __obj->method = ptr; __OBJ_APPEND(&__obj->__mem, ptr); } \
+		else { __OBJ_ERR("could't implement the method '%s'!", #method); goto __err__; } \
     }
 
-// internal allocate
-#define __wobj_imem (__wobj->__mem)
-#define wobj_malloc(size)           __wobj_alloc(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL)
-#define wobj_calloc(count, size)    __wobj_alloc(&__wobj_imem, WOBJ_CALLOC,  count, size,     NULL)
-#define wobj_realloc(ptr, new_size) __wobj_alloc(&__wobj_imem, WOBJ_REALLOC, 0,     new_size, ptr)
-#define wobj_unalloc(ptr)           __wobj_alloc(&__wobj_imem, WOBJ_REALLOC, 0,     0,        ptr)
-#define wobj_alloc(size)     memset(__wobj_alloc(&__wobj_imem, WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
+#define obj_impls(class_name, ...)  __EXPAND(__OBJ_MC(class_name, __VA_ARGS__)(class_name, __VA_ARGS__))
 
-// external allocate
-#define __wobj_omem(name, var) (((__wobj_F(name)*)var)->__mem)
-#define wobj_malloco(name, var, size)           __wobj_alloc(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL)
-#define wobj_calloco(name, var, count, size)    __wobj_alloc(&__wobj_omem(name, var), WOBJ_CALLOC,  count, size,     NULL)
-#define wobj_realloco(name, var, ptr, new_size) __wobj_alloc(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     new_size, ptr)
-#define wobj_unalloco(name, var, ptr)           __wobj_alloc(&__wobj_omem(name, var), WOBJ_REALLOC, 0,     0,        ptr)
-#define wobj_alloco(name, var, size)     memset(__wobj_alloc(&__wobj_omem(name, var), WOBJ_MALLOC,  0,     size,     NULL), '\0', size)
+#define decl_con(class_name) \
+	class_name class_name##_new
 
-#define wobj_new(name, var_name, ...) __wobj_G(name) *var_name = __wobj_n(name)(__VA_ARGS__)
-#define wobj_new2(name, var_name)     __wobj_G(name) *var_name = __wobj_n(name)
-#define wobj_new3(name, ...)                                     __wobj_n(name)(__VA_ARGS__)
-#define wobj_new4(name)                                          __wobj_n(name)
+#define decl_des(class_name) \
+	void class_name##_delete(class_name); \
+	void __OBJ_DES(class_name)(__OBJ_PRV(class_name)*)
 
-#define new(name, ...) __wobj_n(name)(__VA_ARGS__)
+#define obj_init(class_name) \
+	__OBJ_ALL(class_name) *__obj = (__OBJ_ALL(class_name)*)malloc(sizeof(__OBJ_ALL(class_name))); \
+	if (!__obj) { __OBJ_ERR("could't create a new object instance!"); return NULL; } \
+	__obj->__mem = NULL; \
+	if (!__OBJ_APPEND(&__obj->__mem, __obj)) return NULL; \
+	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)(__obj);
 
-#define wobj_free(name, var_name)     __wobj_f(name)((void**)&(var_name))
+#define obj_done(class_name) \
+	(class_name)__obj; \
+	__err__: __OBJ_CLEAN(__obj->__mem); return NULL
 
-#define wobj_sizeof(name)  (sizeof(__wobj_G(name)))
-#define wobj_sizeoff(name) (sizeof(__wobj_P(name)))
-#define wobj_sizeofv(var)  (sizeof(*var))
+#define constructor(class_name) \
+	class_name class_name##_new
 
-// public from
-#define wobj_public(public_name) __wobj_G(public_name) public_name
+#define destructor(class_name) \
+	void class_name##_delete(class_name obj) { \
+		if (!obj) return; \
+		__OBJ_DES(class_name)((__OBJ_PRV(class_name)*)obj); \
+		__OBJ_ALL(class_name) *self = (__OBJ_ALL(class_name)*)obj; \
+		__OBJ_CLEAN(self->__mem); \
+	} \
+	void __OBJ_DES(class_name)(__OBJ_PRV(class_name) *__OBJ_ROOT)
 
-#define wobj_setp(name, public_name, func_name) \
-    _wobj_root_->public_name.func_name = (void*)__wobj_new_clofn(__wobj_m(name, func_name), &(__wobj_s(name, func_name)), (void*)_wobj_root_); \
+#define new(class_name)					class_name##_new
+#define delete(class_name, var_name)    class_name##_delete(var_name)
+#define extends(parent_name)			__OBJ_PUB(parent_name) parent_name
+
+#define override(class_name, parent_name, method_name) \
+    __OBJ_ROOT->parent_name.method_name = (void*)__obj_new_clofn(__OBJ_M(class_name, method_name), &(__OBJ_S(class_name, method_name)), (void*)__OBJ_ROOT); \
     { \
-        struct _wobj_mem *__new = malloc(sizeof(struct _wobj_mem)); \
-        __new->ptr = _wobj_root_->public_name.func_name; \
-        __new->next = __wobj->__mem; \
-        __wobj->__mem = __new; \
+        struct __OBJ_MEM *__new = malloc(sizeof(struct __OBJ_MEM)); \
+        __new->ptr = __OBJ_ROOT->parent_name.method_name; \
+        __new->next = __obj->__mem; \
+        __obj->__mem = __new; \
     }
 
 // end wobj
