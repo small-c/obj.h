@@ -12,6 +12,7 @@
 ```c
 foo f = new(foo)(10);
 assert(f->get() == 10);
+f->base.release();
 ```
 
 ### features
