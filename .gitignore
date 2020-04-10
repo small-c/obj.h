@@ -31,6 +31,7 @@
 *.out
 *.app
 
+.vs/
 bin/
 pro/
 *.sln
