@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2019, wuuyi <wuuyi123@gmail.com> All rights reserved.
+ * Copyright (c) 2020, Nomi-san <wuuyi123@gmail.com> All rights reserved.
+ * Repos: https://github.com/small-c/obj.h/
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -26,18 +27,18 @@
  *
  */
 
-#ifndef _OBJ_H_
-#define _OBJ_H_
+#ifndef __OBJ_H_
+#define __OBJ_H_
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
+#error C++ header is not supported, please use native OOP instead!
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef __VAARGS
 #define __VAARGS(...) ,##__VA_ARGS__
@@ -47,7 +48,7 @@ extern "C" {
 #define __EXPAND(x) x
 #endif
 
-#if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
+#if defined(__unix__) || defined(__unix) || defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
 #include <sys/mman.h>
 #include <sys/user.h>
 #define __OBJ_ACTIV(ptr, size) \
@@ -61,23 +62,23 @@ extern "C" {
 #endif
 #endif
 #if !defined(_WINDOWS_) || !defined(_INC_WINDOWS) || !defined(_MEMORYAPI_H_)
-__declspec(dllimport) int __stdcall VirtualProtect(void *lpAddress, size_t dwSize, unsigned long flNewProtect, unsigned long *lpflOldProtect);
+extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned int newprot, unsigned int *oldprot);
 #endif
 #ifndef PAGE_EXECUTE_READWRITE
 #define PAGE_EXECUTE_READWRITE  0x40
 #endif
 static inline int __OBJ_ACTIV(void *ptr, size_t size) {
-    unsigned long old_protect;
+    unsigned int old_protect;
 	return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
 }
 #else
 #error This OS is not supported!
 #endif
 
-#if defined(__x86_64__) || defined(__x86_64) || defined(__amd64) || defined(__amd64__) || defined(_M_X64) || defined(_WIN64)
-#define __OBJ_X64	1
-#elif defined(i386) || defined(__i386__) || defined(_X86_) || defined(__i386) || defined(__i686__) || defined(__i686) || defined(_M_IX86) || defined(_WIN32)
-#define __OBJ_X86	1
+#if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
+#define __OBJ_X64   1
+#elif defined(__i386) || defined(__i386__) || defined(_M_IX86)
+#define __OBJ_X86   1
 #else
 #error This architecture is not supported!
 #endif
@@ -92,8 +93,10 @@ static inline int __OBJ_ACTIV(void *ptr, size_t size) {
 #endif
 
 static void *__OBJ_clofn(void *prototype, size_t *phsize, void *data) {
+
 	uint8_t *code;
-	size_t offset, ihsize;
+    size_t offset;
+    size_t ihsize;
 
 	offset = *phsize;
 	if (offset == 0) {
@@ -124,6 +127,9 @@ _mk:;
 
 #pragma pack(push, 1)
 #if __OBJ_X64
+    // push rax
+    // mov  rax, addr
+    // jmp  rax
 	static struct {
 		uintptr_t	data;
 		uint8_t		push_rax;
@@ -133,6 +139,7 @@ _mk:;
 	} asmc = { .push_rax = 0x50, .mov_rax = { 0x48, 0xB8 }, .jmp_rax = { 0xFF, 0xE0 } };
 	asmc.addr = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1;
 #elif __OBJ_X86
+    // jmp  addr
 	static struct {
 		uintptr_t	data;
 		uint8_t		jmp;
@@ -146,7 +153,7 @@ _mk:;
 	memcpy(code, prototype, offset);
 	memcpy(code + offset, &asmc, sizeof(asmc));
 
-	return (void*)code;
+	return (void *)code;
 }
 
 #if defined(class)
@@ -169,45 +176,42 @@ _mk:;
 #undef new
 #endif
 
-#if defined(none)
-#undef none
+#if defined(extend)
+#undef extend
 #endif
 
-#if defined(multiple)
-#undef multiple
+#if defined(ctor)
+#undef ctor
 #endif
 
-#if defined(extends)
-#undef extends
+#if defined(dtor)
+#undef dtor
 #endif
 
-#if defined(constructor)
-#undef constructor
-#endif
-
-#if defined(destructor)
-#undef destructor
-#endif
-
-#if defined(obj_use) && (obj_use == this && !defined(__cplusplus))
+// Set root name, default is "self"
+// For "this", #define obj_use this
+#if defined(obj_use)
 #define __OBJ_ROOT obj_use
 #else
 #define __OBJ_ROOT self
 #endif
 
+// Class base
 struct __OBJ_base {
-	void (* alloc)(size_t);
+	void *(* alloc)(size_t);
 	void (* release)();
-	void (* reserved[2]);
+	void *reserved[2];
 };
 
+// Memory node
 struct __OBJ_mem {
     void *ptr;
     struct __OBJ_mem *next;
 };
 
+// Append node
 static void *__OBJ_append(struct __OBJ_mem **node, void *ptr) {
-	if (!ptr) return NULL;
+	if (ptr == NULL) return NULL;
 	struct __OBJ_mem *last = malloc(sizeof(struct __OBJ_mem));
 	if (last) {
 		last->ptr = ptr, last->next = *node;
@@ -218,6 +222,7 @@ static void *__OBJ_append(struct __OBJ_mem **node, void *ptr) {
 	return NULL;
 }
 
+// Clean node list
 static void __OBJ_clean(struct __OBJ_mem *node) {
 	for (struct __OBJ_mem *next, *last = node; last != NULL; ) {
 		next = last->next;
@@ -227,7 +232,7 @@ static void __OBJ_clean(struct __OBJ_mem *node) {
 	}
 }
 
-static size_t __OBJ_alloc_s = 0;
+// base::alloc(size_t)
 static void *__OBJ_alloc(size_t size) {
 	volatile size_t closn = __OBJ_CLOFNNUM;
 	struct __OBJ_base *base = (struct __OBJ_base *)closn;
@@ -235,23 +240,26 @@ static void *__OBJ_alloc(size_t size) {
 	void *ptr = malloc(size);
 	return __OBJ_append((struct __OBJ_mem **)&base->reserved[0], ptr);
 }
+static size_t __OBJ_alloc_s = 0;
 
-static size_t __OBJ_release_s = 0;
+// base::release()
 static void __OBJ_release() {
 	volatile size_t closn = __OBJ_CLOFNNUM;
 	struct __OBJ_base *base = (struct __OBJ_base *)closn;
 
 	struct __OBJ_mem *mem = base->reserved[0];
-	void (* destructor)() = base->reserved[1];
+	void (* dtor)(void *) = base->reserved[1];
 
 	free(base->release);
 	base->release = NULL;
 
-	if (destructor) destructor();
+	if (dtor != NULL) dtor(base);
 	free(base->alloc);
 	__OBJ_clean(mem);
 }
+static size_t __OBJ_release_s = 0;
 
+// Some private macros
 #define __OBJ_PUB(n)	struct __OBJ__##n
 #define __OBJ_PRV(n)	struct __OBJ_PRV_##n
 #define __OBJ_INF(n)    struct __OBJ_INF_##n
@@ -263,49 +271,60 @@ static void __OBJ_release() {
 #define __OBJ_CON(n)	__OBJ_C_##n
 #define __OBJ_DES(n)	__OBJ_D_##n
 
-#define none
+// Public fields
 #define public(...)     __VA_ARGS__
+// Private fields
 #define private(...)    __VA_ARGS__
-#define multiple(...)   __VA_ARGS__
-#define extends(parent_name) \
-	__OBJ_PUB(parent_name) parent_name
 
+// Extend a class
+#define extend(super_name) \
+	__OBJ_PUB(super_name) super_name
+
+// Class declaration
 #define classdef(name) \
     typedef __OBJ_PUB(name) *name
 
+// Class definition
 #define class(name, public_members, ...) \
     __OBJ_PUB(name) { \
 		struct __OBJ_base base; \
         struct { char : 0; public_members }; \
-    } *name; \
+    }; \
     __OBJ_PRV(name) { \
 		struct __OBJ_base base; \
         struct { char : 0; public_members }; \
         struct { char : 0; __VA_ARGS__ }; \
     }
 
-#define constructor(class_name) \
-	class_name class_name##_new
+// Constructor declaration
+#define ctor(class_name) \
+	__OBJ_PUB(class_name) *class_name##_new
 
-#define destructor(class_name) \
+// Destructor declaration
+#define dtor(class_name) \
 	void __OBJ_DES(class_name)(__OBJ_PRV(class_name) *__OBJ_ROOT)
 
+// Method declaration
 #define method(class_name, return_type, name) \
 	static size_t __OBJ_S(class_name, name); \
 	static return_type __OBJ_M(class_name, name)
 
+// New instance
 #define new(class_name) \
 	class_name##_new
 
+// Prepare self
 #define obj_prepare(class_name) \
 	volatile size_t __closn = (size_t)__OBJ_CLOFNNUM; \
 	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)__closn
 
 #define __OBJ_IMPL(class_name, method_name) \
     do { \
-		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
+		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), \
+            &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
 		if (__pf) { \
-			__OBJ_ROOT->method_name = __OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); \
+			__OBJ_ROOT->method_name = __OBJ_append( \
+                (struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); \
 		} \
 		else { \
 			__OBJ_ERR("could't implement the method '%s'!", #method_name); \
@@ -320,36 +339,47 @@ static void __OBJ_release() {
 #define __OBJ_S4(n, _1, _2, _3) \
     __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3)
 #define __OBJ_S5(n, _1, _2, _3, _4) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4)
 #define __OBJ_S6(n, _1, _2, _3, _4, _5) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5)
 #define __OBJ_S7(n, _1, _2, _3, _4, _5, _6) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6)
 #define __OBJ_S8(n, _1, _2, _3, _4, _5, _6, _7) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7)
 #define __OBJ_S9(n, _1, _2, _3, _4, _5, _6, _7, _8) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6), __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6), \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8)
 #define __OBJ_S10(n, _1, _2, _3, _4, _5, _6, _7, _8, _9) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9)
 #define __OBJ_S11(n, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); __OBJ_IMPL(n, _10)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); \
+    __OBJ_IMPL(n, _10)
 #define __OBJ_S12(n, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); __OBJ_IMPL(n, _10); \
-	__OBJ_IMPL(n, _11)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); \
+    __OBJ_IMPL(n, _10); __OBJ_IMPL(n, _11)
 #define __OBJ_S13(n, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); __OBJ_IMPL(n, _10); \
-	__OBJ_IMPL(n, _11); __OBJ_IMPL(n, _12)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); \
+    __OBJ_IMPL(n, _10); __OBJ_IMPL(n, _11); __OBJ_IMPL(n, _12)
 #define __OBJ_S14(n, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13) \
-    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); \
-	__OBJ_IMPL(n, _6); __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); __OBJ_IMPL(n, _10); \
-	__OBJ_IMPL(n, _11); __OBJ_IMPL(n, _12); __OBJ_IMPL(n, _13)
+    __OBJ_IMPL(n, _1); __OBJ_IMPL(n, _2); __OBJ_IMPL(n, _3); \
+    __OBJ_IMPL(n, _4); __OBJ_IMPL(n, _5); __OBJ_IMPL(n, _6); \
+    __OBJ_IMPL(n, _7); __OBJ_IMPL(n, _8); __OBJ_IMPL(n, _9); \
+    __OBJ_IMPL(n, _10); __OBJ_IMPL(n, _11); __OBJ_IMPL(n, _12); \
+    __OBJ_IMPL(n, _13)
 
 #define __OBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
 #define __OBJ_FR(args) __OBJ_FC args
@@ -360,8 +390,10 @@ static void __OBJ_release() {
         __OBJ_S3, __OBJ_S2, , ))
 #define __OBJ_MC(...) __OBJ_CFA(__VA_ARGS__ ())
 
-#define obj_implement(class_name, ...)  __EXPAND(__OBJ_MC(class_name, __VA_ARGS__)(class_name, __VA_ARGS__))
+// Bind methods
+#define obj_bind(class_name, ...)  __EXPAND(__OBJ_MC(class_name, __VA_ARGS__)(class_name, __VA_ARGS__))
 
+// Constructor setup instance
 #define obj_setup(class_name) \
 	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)malloc(sizeof(__OBJ_PRV(class_name))); \
 	do { \
@@ -376,26 +408,27 @@ static void __OBJ_release() {
 		if (!__OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __OBJ_ROOT)) goto __err__; \
 	} while (0)
 
+// Constructor raiserror
 #define obj_error() \
 	goto __err__
 
+// Constructor error handing
 #define obj_done(class_name) \
-	(class_name)__OBJ_ROOT; \
+	return (class_name)__OBJ_ROOT; \
 	__err__:; \
 	__OBJ_clean((struct __OBJ_mem *)__OBJ_ROOT->base.reserved[0]); \
 	return NULL
 
-#define obj_onfree(class_name) \
+// Bind deconstructor
+#define obj_dtor(class_name) \
 	__OBJ_ROOT->base.reserved[1] = (void*)__OBJ_DES(class_name)
 
-#define obj_override(class_name, parent_name, method_name) \
+// Override super's method
+#define obj_override(class_name, super_name, method_name) \
 	do { \
 		void *ptr = __OBJ_clofn(__OBJ_M(class_name, method_name), (void*)__OBJ_ROOT); \
 		if (ptr) { __obj->parent_name.method_name = __OBJ_append(&__obj->__mem, ptr); } \
-		else { __OBJ_ERR("could't implement the method '%s.%s'!", #parent_name, #method_name); goto __err__; } \
+		else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
 	} while (0)
 
-#ifdef __cplusplus
-}
-#endif
 #endif
