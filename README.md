@@ -8,6 +8,7 @@
     <p align="center">
         <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
         <a href="#"><img src="https://img.shields.io/badge/cc-multiple-blue.svg"></a>
+        <a href="#"><img src="https://img.shields.io/badge/sloc-375-lightgrey.svg"></a>
     </p>
 </p>
 
