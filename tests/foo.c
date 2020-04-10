@@ -1,65 +1,83 @@
-#include "wobj.h"
+#include "obj.h"
 
-// declare FOO object
-wobj(FOO,
+// Class declaration
+classdef(Foo);
+
+// Class definition
+class(Foo,
     public
     (
-        int bar;
-        void func(set, (int value));
-        int func(get, ());
+        int  (*get)();
+        void (*set)(int value);
     ),
     private
     (
-        int val;
+        int bar;
     )
-)
+);
 
-// like: void FOO::set(int val)
-void wobj_def(FOO, set, (int val),
-    {
-        self->val = val;
-    }
-)
+// Forward declarations
+// Notes: on GNU compiler, these declarations must
+//   be placed here (after class definition), but MSVC not.
+ctor(Foo)(int bar);                 // Constructor
+dtor(Foo);                          // Destructor (optional)
+method(Foo, int, get)();            // Method
+method(Foo, void, set)(int val);    // Method
 
-// like: int FOO::get()
-int wobj_def(FOO, get, (),
-    {
-        return self->val;
-    }
-)
+// Constructor definition
+ctor(Foo)(int bar)
+{
+    // IMPORTANT! To initialize instance
+    obj_setup(Foo);
+    // Bind destructor (optional)
+    obj_dtor(Foo);
+    // IMPORTANT! Bind methods, can call obj_bind upto 14 params at once
+    obj_bind(Foo, set, get);
 
-wobj_init(FOO, (int bar),
-    { // initialize, FOO::FOO(int bar)
+    // Set bar from arg
+    self->bar = bar;
+    // Self allocate, do not free it
+    void *some = self->base.alloc(16);
 
-        // set method
-        wobj_set(FOO, get);
-        wobj_set(FOO, set);
+    // IMPORTANT! For error handing
+    obj_done(Foo);
+}
 
-        self->bar = bar; // set bar
-        void *ptr = wobj_malloc(16); // self-allocate with GC, no need to free
-    },
-    { // freeing, FOO::~FOO()
+// Destructor definition (optional)
+dtor(Foo)
+{
+    // Just body here, no macro requires
+    printf("freeing... instance %p\n", self);
+}
 
-        puts("freeing...");
-    }
-)
+// Method Foo::get
+method(Foo, int, get)()
+{
+    // IMPORTANT! To prepare self
+    obj_prepare(Foo);
+
+    return self->bar;
+}
+
+// Method Foo::set
+method(Foo, void, set)(int val)
+{
+    // IMPORTANT! To prepare self
+    obj_prepare(Foo);
+
+    self->bar = val;
+}
 
 int main()
 {
-    // create `foo` as FOO object
-    wobj_new(FOO, foo, 10);
+    // Create new object instance
+    Foo foo = new(Foo)(10);
 
-    // set private val = 55, via set()
+    // Test methods call
+    printf("bar: %d\n", foo->get());
     foo->set(55);
+    printf("re-bar: %d\n", foo->get());
 
-    int bar = foo->bar; // get public bar
-    int val = foo->get(); // get private val, via get()
-
-    printf("bar = %d\n", bar);
-    printf("val = %d\n", val);
-
-    // free `foo`
-    wobj_free(FOO, foo);
-
-    puts("done!");
+    // Release object with base.release
+    foo->base.release();
 }
