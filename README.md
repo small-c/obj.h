@@ -1,36 +1,43 @@
 <p align="center">
     <h1 align="center">obj.h</h1>
     <h4 align="center">
-        A simple one header supports oriented object programming in C.
+        A single-header supports oriented object programming in pure C
+       <br>
+        - <i>just a hacking on assembly</i> -
     </h4>
     <p align="center">
         <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/wy3/wobj.svg?branch=master"></a>
-        <a href="#"><img src="https://img.shields.io/badge/os-cross--platform-blue.svg"></a>
+        <a href="#"><img src="https://img.shields.io/badge/cc-multiple-blue.svg"></a>
     </p>
 </p>
 
-```c
-foo f = new(foo)(10);
+```cpp
+Foo f = new(Foo)(10);
 assert(f->get() == 10);
 f->base.release();
 ```
 
-### features
-- Simple syntax (inspired by C++ and Java)
+### Features
+- Simple syntax (inspired by **C++** and **Java**)
 - Objects, classes
 - Public, private members
 - Data abstraction
 - Inheritance
 
-### platforms supported
+### Usage
 
-_ | GCC | MSVC | Clang
--|:-:|:-:|:-:
-Windows | ✓ | ✓ | ✓
-Linux   | x86 / x86_64 |  | x86
-Mac OSX | ✓ |  | x86
+- Just add `obj.h` to your **C** source.
+- See tests for more.
 
-### how it works?
+### Compilers supported
+
+OS\CC   | GCC | MSVC | Clang
+:-------|:---:|:----:|:----:
+Windows | ✅  | ✅   | ✅
+Linux   | x86 / x86_64 ✓ | _ | x86 ✓
+Mac OSX | ✅  | _    | ✅
+
+### How it works?
 
 ```elm
 $object {
@@ -45,8 +52,3 @@ allocate +--->   |                    |       \-----> { function }
 constructor -> object  | +-----> [INTERNAL]
 destructor() ->  X
 ```
-
-### example
-### documentations
-
-updating...
