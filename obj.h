@@ -112,42 +112,50 @@ static void *__OBJ_clofn(void *prototype, size_t *phsize, void *data) {
     }
 
 _mk:;
+#pragma pack(push, 1)
 #if __OBJ_X64
-	ihsize = offset + sizeof(void *) * 2 + 5;
+    // push rax
+    // mov  rax, addr
+    // jmp  rax
+    static struct {
+        uintptr_t	data;
+        uint8_t		push_rax;
+        uint8_t		mov_rax[2];
+        uintptr_t   addr;
+        uint8_t     jmp_rax[2];
+    } asmc = {
+        .push_rax = 0x50,
+        .mov_rax = { 0x48, 0xB8 },
+        .jmp_rax = { 0xFF, 0xE0 }
+    };
+	//ihsize = offset + sizeof(void *) * 2 + 5;
 #elif __OBJ_X86
-	ihsize = offset + sizeof(void *) * 2 + 1;
+    // jmp  addr
+    static struct {
+        uintptr_t	data;
+        uint8_t		jmp;
+        uintptr_t   addr;
+    } asmc = {
+        .jmp = 0xE9
+    };
+	//ihsize = offset + sizeof(void *) * 2 + 1;
 #endif
+#pragma pack(pop)
 
+    ihsize = offset + sizeof(asmc);
 	code = malloc(ihsize);
+
 	if (!__OBJ_ACTIV(code, ihsize)) {
 		__OBJ_ERR("could't change memory type of C.malloc allocated!");
 		free(code);
 		return NULL;
 	}
 
-#pragma pack(push, 1)
 #if __OBJ_X64
-    // push rax
-    // mov  rax, addr
-    // jmp  rax
-	static struct {
-		uintptr_t	data;
-		uint8_t		push_rax;
-		uint8_t		mov_rax[2];
-		uintptr_t   addr;
-		uint8_t     jmp_rax[2];
-	} asmc = { .push_rax = 0x50, .mov_rax = { 0x48, 0xB8 }, .jmp_rax = { 0xFF, 0xE0 } };
 	asmc.addr = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1;
 #elif __OBJ_X86
-    // jmp  addr
-	static struct {
-		uintptr_t	data;
-		uint8_t		jmp;
-		uintptr_t   addr;
-	} asmc = { .jmp = 0xE9 };
 	asmc.addr = ((uintptr_t)prototype + offset + sizeof(uintptr_t)) - ((uintptr_t)code + ihsize);
 #endif
-#pragma pack(pop)
 
 	asmc.data = (uintptr_t)data;
 	memcpy(code, prototype, offset);
