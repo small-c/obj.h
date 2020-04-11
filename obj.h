@@ -106,10 +106,10 @@ static void *__OBJ_clofn(void *prototype, size_t *phsize, void *data) {
 				goto _mk;
 			}
 		}
-	}
 
-	__OBJ_ERR("could't find closure declaration at prototype function (%p)!", prototype);
-	return NULL;
+        __OBJ_ERR("could't find closure declaration at prototype function (%p)!", prototype);
+        return NULL;
+    }
 
 _mk:;
 #if __OBJ_X64
@@ -233,6 +233,7 @@ static void __OBJ_clean(struct __OBJ_mem *node) {
 }
 
 // base::alloc(size_t)
+static size_t __OBJ_alloc_s = 0;
 static void *__OBJ_alloc(size_t size) {
 	volatile size_t closn = __OBJ_CLOFNNUM;
 	struct __OBJ_base *base = (struct __OBJ_base *)closn;
@@ -240,9 +241,9 @@ static void *__OBJ_alloc(size_t size) {
 	void *ptr = malloc(size);
 	return __OBJ_append((struct __OBJ_mem **)&base->reserved[0], ptr);
 }
-static size_t __OBJ_alloc_s = 0;
 
 // base::release()
+static size_t __OBJ_release_s = 0;
 static void __OBJ_release() {
 	volatile size_t closn = __OBJ_CLOFNNUM;
 	struct __OBJ_base *base = (struct __OBJ_base *)closn;
@@ -257,7 +258,6 @@ static void __OBJ_release() {
 	free(base->alloc);
 	__OBJ_clean(mem);
 }
-static size_t __OBJ_release_s = 0;
 
 // Some private macros
 #define __OBJ_PUB(n)	struct __OBJ__##n
@@ -427,7 +427,7 @@ static size_t __OBJ_release_s = 0;
 #define obj_override(class_name, super_name, method_name) \
 	do { \
 		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
-		if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append(&__OBJ_ROOT->base.reserved[0], __pf); } \
+		if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); } \
 		else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
 	} while (0)
 
