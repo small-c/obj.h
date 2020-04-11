@@ -426,8 +426,8 @@ static size_t __OBJ_release_s = 0;
 // Override super's method
 #define obj_override(class_name, super_name, method_name) \
 	do { \
-		void *ptr = __OBJ_clofn(__OBJ_M(class_name, method_name), (void*)__OBJ_ROOT); \
-		if (ptr) { __obj->parent_name.method_name = __OBJ_append(&__obj->__mem, ptr); } \
+		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
+		if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append(&__OBJ_ROOT->base.reserved[0], __pf); } \
 		else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
 	} while (0)
 
