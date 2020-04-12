@@ -18,6 +18,7 @@ script:
   - gcc -std=gnu99 -w -o ./bin/foo -I./ tests/foo.c && ./bin/foo
   - gcc -std=gnu99 -w -o ./bin/dog -I./ tests/dog.c && ./bin/dog
   - gcc -std=gnu99 -w -o ./bin/animal -I./ tests/animal/*.c && ./bin/animal
+  - gcc -std=gnu99 -w -o ./bin/shape -I./ tests/shape/*.c && ./bin/shape
 
 before_install:
   - eval "${MATRIX_EVAL}"
