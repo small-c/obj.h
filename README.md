@@ -6,7 +6,7 @@
         - <i>just a hacking on assembly</i> -
     </h4>
     <p align="center">
-        <a href="https://travis-ci.org/wy3/wobj" target="_blank"><img src="https://travis-ci.org/small-c/obj.h.svg?branch=master"></a>
+        <a href="https://travis-ci.org/small-c/obj.h" target="_blank"><img src="https://travis-ci.org/small-c/obj.h.svg?branch=master"></a>
         <a href="#"><img src="https://img.shields.io/badge/cc-multiple-blue.svg"></a>
         <a href="#"><img src="https://img.shields.io/badge/sloc-375-lightgrey.svg"></a>
     </p>
