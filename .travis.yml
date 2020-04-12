@@ -1,6 +1,8 @@
+language:
+    - c
+
 matrix:
   include:
-    # works on Precise and Trusty
     - os: linux
       addons:
         apt:
@@ -12,14 +14,8 @@ matrix:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
          
 script:
-    - gcc -std=gnu99 -w -o foo -I. tests/foo.c && ./foo
-    - gcc -std=gnu99 -w -o dog -I. tests/dog.c && ./dog
-    - gcc -std=gnu99 -w -o killself -I. tests/killself.c && ./killself
-    - gcc -std=gnu99 -w -o shape -I. tests/shape/*.c && ./shape
-    - gcc -std=gnu99 -w -o animal -I. tests/animal/*.c && ./animal
-    
-language:
-    - c
+    - gcc -std=gnu99 -w -o foo -I./ tests/foo.c && ./foo
+    - gcc -std=gnu99 -w -o dog -I./ tests/dog.c && ./dog
 
 before_install:
     - eval "${MATRIX_EVAL}"
