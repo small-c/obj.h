@@ -61,7 +61,7 @@
 #error obj.h does not support MSVC on debug mode!
 #endif
 #endif
-#if !defined(_WINDOWS_) || !defined(_INC_WINDOWS) || !defined(_MEMORYAPI_H_)
+#if !defined(_WINDOWS_) || !defined(_INC_WINDOWS) || !defined(_WINDOWS_H) || !defined(_MEMORYAPI_H_)
 extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned int newprot, unsigned int *oldprot);
 #endif
 #ifndef PAGE_EXECUTE_READWRITE
