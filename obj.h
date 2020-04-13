@@ -61,15 +61,15 @@
 #error obj.h does not support MSVC on debug mode!
 #endif
 #endif
-#if !defined(_WINDOWS_) || !defined(_INC_WINDOWS) || !defined(_WINDOWS_H) || !defined(_MEMORYAPI_H_)
-extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned int newprot, unsigned int *oldprot);
+#if !(defined(_WINDOWS_) || defined(_INC_WINDOWS) || defined(_WINDOWS_H) || defined(_MEMORYAPI_H_))
+extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned long newprot, unsigned long *oldprot);
 #endif
 #ifndef PAGE_EXECUTE_READWRITE
 #define PAGE_EXECUTE_READWRITE  0x40
 #endif
 static inline int __OBJ_ACTIV(void *ptr, size_t size) {
-    unsigned int old_protect;
-	return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
+    unsigned long old_protect;
+    return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
 }
 #else
 #error This OS is not supported!
@@ -87,25 +87,25 @@ static inline int __OBJ_ACTIV(void *ptr, size_t size) {
 
 #define __OBJ_MAXPHSIZE 1024
 #if __OBJ_X64
-#define __OBJ_CLOFNNUM	0x58ffffbffdffffafULL
+#define __OBJ_CLOFNNUM  0x58ffffbffdffffafULL
 #elif __OBJ_X86
 #define __OBJ_CLOFNNUM  0x58ffffbfU
 #endif
 
 static void *__OBJ_clofn(void *prototype, size_t *phsize, void *data) {
 
-	uint8_t *code;
+    uint8_t *code;
     size_t offset;
     size_t ihsize;
 
-	offset = *phsize;
-	if (offset == 0) {
-		for (; offset < __OBJ_MAXPHSIZE; offset++) {
-			if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)__OBJ_CLOFNNUM) {
-				if (*phsize == 0) *phsize = offset;
-				goto _mk;
-			}
-		}
+    offset = *phsize;
+    if (offset == 0) {
+        for (; offset < __OBJ_MAXPHSIZE; offset++) {
+            if (*(size_t *)((uintptr_t)prototype + offset) == (size_t)__OBJ_CLOFNNUM) {
+                if (*phsize == 0) *phsize = offset;
+                goto _mk;
+            }
+        }
 
         __OBJ_ERR("could't find closure declaration at prototype function (%p)!", prototype);
         return NULL;
@@ -118,9 +118,9 @@ _mk:;
     // mov  rax, addr
     // jmp  rax
     static struct {
-        uintptr_t	data;
-        uint8_t		push_rax;
-        uint8_t		mov_rax[2];
+        uintptr_t   data;
+        uint8_t     push_rax;
+        uint8_t     mov_rax[2];
         uintptr_t   addr;
         uint8_t     jmp_rax[2];
     } asmc = {
@@ -128,40 +128,40 @@ _mk:;
         .mov_rax = { 0x48, 0xB8 },
         .jmp_rax = { 0xFF, 0xE0 }
     };
-	//ihsize = offset + sizeof(void *) * 2 + 5;
+    //ihsize = offset + sizeof(void *) * 2 + 5;
 #elif __OBJ_X86
     // jmp  addr
     static struct {
-        uintptr_t	data;
-        uint8_t		jmp;
+        uintptr_t   data;
+        uint8_t     jmp;
         uintptr_t   addr;
     } asmc = {
         .jmp = 0xE9
     };
-	//ihsize = offset + sizeof(void *) * 2 + 1;
+    //ihsize = offset + sizeof(void *) * 2 + 1;
 #endif
 #pragma pack(pop)
 
     ihsize = offset + sizeof(asmc);
-	code = malloc(ihsize);
+    code = malloc(ihsize);
 
-	if (!__OBJ_ACTIV(code, ihsize)) {
-		__OBJ_ERR("could't change memory type of C.malloc allocated!");
-		free(code);
-		return NULL;
-	}
+    if (!__OBJ_ACTIV(code, ihsize)) {
+        __OBJ_ERR("could't change memory type of C.malloc allocated!");
+        free(code);
+        return NULL;
+    }
 
 #if __OBJ_X64
-	asmc.addr = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1;
+    asmc.addr = (uintptr_t)prototype + offset + sizeof(uintptr_t) - 1;
 #elif __OBJ_X86
-	asmc.addr = ((uintptr_t)prototype + offset + sizeof(uintptr_t)) - ((uintptr_t)code + ihsize);
+    asmc.addr = ((uintptr_t)prototype + offset + sizeof(uintptr_t)) - ((uintptr_t)code + ihsize);
 #endif
 
-	asmc.data = (uintptr_t)data;
-	memcpy(code, prototype, offset);
-	memcpy(code + offset, &asmc, sizeof(asmc));
+    asmc.data = (uintptr_t)data;
+    memcpy(code, prototype, offset);
+    memcpy(code + offset, &asmc, sizeof(asmc));
 
-	return (void *)code;
+    return (void *)code;
 }
 
 #if defined(class)
@@ -206,9 +206,9 @@ _mk:;
 
 // Class base
 struct __OBJ_base {
-	void *(* alloc)(size_t);
-	void (* release)();
-	void *reserved[2];
+    void *(* alloc)(size_t);
+    void (* release)();
+    void *reserved[2];
 };
 
 // Memory node
@@ -219,65 +219,65 @@ struct __OBJ_mem {
 
 // Append node
 static void *__OBJ_append(struct __OBJ_mem **node, void *ptr) {
-	if (ptr == NULL) return NULL;
-	struct __OBJ_mem *last = malloc(sizeof(struct __OBJ_mem));
-	if (last) {
-		last->ptr = ptr, last->next = *node;
-		*node = last;
-		return ptr;
-	}
-	__OBJ_ERR("could't append memory %p to node list!", ptr);
-	return NULL;
+    if (ptr == NULL) return NULL;
+    struct __OBJ_mem *last = malloc(sizeof(struct __OBJ_mem));
+    if (last) {
+        last->ptr = ptr, last->next = *node;
+        *node = last;
+        return ptr;
+    }
+    __OBJ_ERR("could't append memory %p to node list!", ptr);
+    return NULL;
 }
 
 // Clean node list
 static void __OBJ_clean(struct __OBJ_mem *node) {
-	for (struct __OBJ_mem *next, *last = node; last != NULL; ) {
-		next = last->next;
-		free(last->ptr);
-		free(last);
-		last = next;
-	}
+    for (struct __OBJ_mem *next, *last = node; last != NULL; ) {
+        next = last->next;
+        free(last->ptr);
+        free(last);
+        last = next;
+    }
 }
 
 // base::alloc(size_t)
 static size_t __OBJ_alloc_s = 0;
 static void *__OBJ_alloc(size_t size) {
-	volatile size_t closn = __OBJ_CLOFNNUM;
-	struct __OBJ_base *base = (struct __OBJ_base *)closn;
+    volatile size_t closn = __OBJ_CLOFNNUM;
+    struct __OBJ_base *base = (struct __OBJ_base *)closn;
 
-	void *ptr = malloc(size);
-	return __OBJ_append((struct __OBJ_mem **)&base->reserved[0], ptr);
+    void *ptr = malloc(size);
+    return __OBJ_append((struct __OBJ_mem **)&base->reserved[0], ptr);
 }
 
 // base::release()
 static size_t __OBJ_release_s = 0;
 static void __OBJ_release() {
-	volatile size_t closn = __OBJ_CLOFNNUM;
-	struct __OBJ_base *base = (struct __OBJ_base *)closn;
+    volatile size_t closn = __OBJ_CLOFNNUM;
+    struct __OBJ_base *base = (struct __OBJ_base *)closn;
 
-	struct __OBJ_mem *mem = base->reserved[0];
-	void (* dtor)(void *) = base->reserved[1];
+    struct __OBJ_mem *mem = base->reserved[0];
+    void (* dtor)(void *) = base->reserved[1];
 
-	free(base->release);
-	base->release = NULL;
+    free(base->release);
+    base->release = NULL;
 
-	if (dtor != NULL) dtor(base);
-	free(base->alloc);
-	__OBJ_clean(mem);
+    if (dtor != NULL) dtor(base);
+    free(base->alloc);
+    __OBJ_clean(mem);
 }
 
 // Some private macros
-#define __OBJ_PUB(n)	struct __OBJ__##n
-#define __OBJ_PRV(n)	struct __OBJ_PRV_##n
+#define __OBJ_PUB(n)    struct __OBJ__##n
+#define __OBJ_PRV(n)    struct __OBJ_PRV_##n
 #define __OBJ_INF(n)    struct __OBJ_INF_##n
 
-#define __OBJ_M(n, f)	__OBJ__##n##_##f
-#define __OBJ_S(n, f)	__OBJ_S_##n##_##f
-#define __OBJ_H(n, f)	__OBJ_H_##n##_##f
+#define __OBJ_M(n, f)   __OBJ__##n##_##f
+#define __OBJ_S(n, f)   __OBJ_S_##n##_##f
+#define __OBJ_H(n, f)   __OBJ_H_##n##_##f
 
-#define __OBJ_CON(n)	__OBJ_C_##n
-#define __OBJ_DES(n)	__OBJ_D_##n
+#define __OBJ_CON(n)    __OBJ_C_##n
+#define __OBJ_DES(n)    __OBJ_D_##n
 
 // Public fields
 #define public(...)     __VA_ARGS__
@@ -286,7 +286,7 @@ static void __OBJ_release() {
 
 // Extend a class
 #define extend(super_name) \
-	__OBJ_PUB(super_name) super_name
+    __OBJ_PUB(super_name) super_name
 
 // Class declaration
 #define classdef(name) \
@@ -295,49 +295,49 @@ static void __OBJ_release() {
 // Class definition
 #define class(name, public_members, ...) \
     __OBJ_PUB(name) { \
-		struct __OBJ_base base; \
+        struct __OBJ_base base; \
         struct { char : 0; public_members }; \
     }; \
     __OBJ_PRV(name) { \
-		struct __OBJ_base base; \
+        struct __OBJ_base base; \
         struct { char : 0; public_members }; \
         struct { char : 0; __VA_ARGS__ }; \
     }
 
 // Constructor declaration
 #define ctor(class_name) \
-	__OBJ_PUB(class_name) *class_name##_new
+    __OBJ_PUB(class_name) *class_name##_new
 
 // Destructor declaration
 #define dtor(class_name) \
-	void __OBJ_DES(class_name)(__OBJ_PRV(class_name) *__OBJ_ROOT)
+    void __OBJ_DES(class_name)(__OBJ_PRV(class_name) *__OBJ_ROOT)
 
 // Method declaration
 #define method(class_name, return_type, name) \
-	static size_t __OBJ_S(class_name, name); \
-	static return_type __OBJ_M(class_name, name)
+    static size_t __OBJ_S(class_name, name); \
+    static return_type __OBJ_M(class_name, name)
 
 // New instance
 #define new(class_name) \
-	class_name##_new
+    class_name##_new
 
 // Prepare self
 #define obj_prepare(class_name) \
-	volatile size_t __closn = (size_t)__OBJ_CLOFNNUM; \
-	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)__closn
+    volatile size_t __closn = (size_t)__OBJ_CLOFNNUM; \
+    __OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)__closn
 
 #define __OBJ_IMPL(class_name, method_name) \
     do { \
-		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), \
+        void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), \
             &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
-		if (__pf) { \
-			__OBJ_ROOT->method_name = __OBJ_append( \
+        if (__pf) { \
+            __OBJ_ROOT->method_name = __OBJ_append( \
                 (struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); \
-		} \
-		else { \
-			__OBJ_ERR("could't implement the method '%s'!", #method_name); \
-			goto __err__; \
-		} \
+        } \
+        else { \
+            __OBJ_ERR("could't implement the method '%s'!", #method_name); \
+            goto __err__; \
+        } \
     } while (0)
 
 #define __OBJ_S2(n, _1) \
@@ -392,7 +392,7 @@ static void __OBJ_release() {
 #define __OBJ_FC(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, ...) _15
 #define __OBJ_FR(args) __OBJ_FC args
 #define __OBJ_CFA(...) __OBJ_FR((__VA_ARGS__, \
-		__OBJ_S14, __OBJ_S13, __OBJ_S12, \
+        __OBJ_S14, __OBJ_S13, __OBJ_S12, \
         __OBJ_S11, __OBJ_S10, __OBJ_S9, __OBJ_S8, \
         __OBJ_S7, __OBJ_S6, __OBJ_S5, __OBJ_S4, \
         __OBJ_S3, __OBJ_S2, , ))
@@ -403,40 +403,40 @@ static void __OBJ_release() {
 
 // Constructor setup instance
 #define obj_setup(class_name) \
-	__OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)malloc(sizeof(__OBJ_PRV(class_name))); \
-	do { \
-		if (!__OBJ_ROOT) { \
-			__OBJ_ERR("could't create new class '%s' instance!", #class_name); \
-			return NULL; \
-		} \
-		__OBJ_ROOT->base.reserved[0] = NULL; \
-		__OBJ_ROOT->base.reserved[1] = NULL; \
-		__OBJ_ROOT->base.alloc = __OBJ_clofn((void*)__OBJ_alloc, &__OBJ_alloc_s, (void*)__OBJ_ROOT); \
-		__OBJ_ROOT->base.release = __OBJ_clofn((void*)__OBJ_release, &__OBJ_release_s, (void*)__OBJ_ROOT); \
-		if (!__OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __OBJ_ROOT)) goto __err__; \
-	} while (0)
+    __OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)malloc(sizeof(__OBJ_PRV(class_name))); \
+    do { \
+        if (!__OBJ_ROOT) { \
+            __OBJ_ERR("could't create new class '%s' instance!", #class_name); \
+            return NULL; \
+        } \
+        __OBJ_ROOT->base.reserved[0] = NULL; \
+        __OBJ_ROOT->base.reserved[1] = NULL; \
+        __OBJ_ROOT->base.alloc = __OBJ_clofn((void*)__OBJ_alloc, &__OBJ_alloc_s, (void*)__OBJ_ROOT); \
+        __OBJ_ROOT->base.release = __OBJ_clofn((void*)__OBJ_release, &__OBJ_release_s, (void*)__OBJ_ROOT); \
+        if (!__OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __OBJ_ROOT)) goto __err__; \
+    } while (0)
 
 // Constructor raiserror
 #define obj_error() \
-	goto __err__
+    goto __err__
 
 // Constructor error handing
 #define obj_done(class_name) \
-	return (class_name)__OBJ_ROOT; \
-	__err__:; \
-	__OBJ_clean((struct __OBJ_mem *)__OBJ_ROOT->base.reserved[0]); \
-	return NULL
+    return (class_name)__OBJ_ROOT; \
+    __err__:; \
+    __OBJ_clean((struct __OBJ_mem *)__OBJ_ROOT->base.reserved[0]); \
+    return NULL
 
 // Bind deconstructor
 #define obj_dtor(class_name) \
-	__OBJ_ROOT->base.reserved[1] = (void*)__OBJ_DES(class_name)
+    __OBJ_ROOT->base.reserved[1] = (void*)__OBJ_DES(class_name)
 
 // Override super's method
 #define obj_override(class_name, super_name, method_name) \
-	do { \
-		void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
-		if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); } \
-		else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
-	} while (0)
+    do { \
+        void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
+        if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); } \
+        else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
+    } while (0)
 
 #endif
