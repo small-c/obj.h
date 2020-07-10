@@ -67,10 +67,8 @@ extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned long newpr
 #ifndef PAGE_EXECUTE_READWRITE
 #define PAGE_EXECUTE_READWRITE  0x40
 #endif
-static inline int __OBJ_ACTIV(void *ptr, size_t size) {
-    unsigned long old_protect;
-    return VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &old_protect) != 0;
-}
+#define __OBJ_ACTIV(ptr, size) \
+    (VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, (size_t *)&(char [sizeof(unsigned long)]{})) != 0)
 #else
 #error This OS is not supported!
 #endif
