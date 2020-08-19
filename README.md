@@ -7,8 +7,6 @@
     </h4>
     <p align="center">
         <a href="https://travis-ci.org/small-c/obj.h" target="_blank"><img src="https://travis-ci.org/small-c/obj.h.svg?branch=master"></a>
-        <a href="#"><img src="https://img.shields.io/badge/cc-multiple-blue.svg"></a>
-        <a href="#"><img src="https://img.shields.io/badge/sloc-375-lightgrey.svg"></a>
     </p>
 </p>
 
@@ -18,28 +16,27 @@ assert(f->get() == 10);
 f->base.release();
 ```
 
-[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6W74V)
-
 ### Features
-- Simple syntax (inspired by **C++** and **Java**)
-- Classes, objects
-- Public, private members
-- Constructor, destructor
-- Data abstraction
-- Inheritance
+- Support **OOP** in pure **C** (inspired by **C++** and **Java**).
+- Support classes, objects
+- Support cublic, private members
+- Support constructor, destructor
+- Support data abstraction
+- Support inheritance
+- No dependencies
 
 ### Usage
 
 - Just add `obj.h` to your **C** source.
 - See tests for more.
 
-### Compilers supported
+### Platform support
 
-OS\CC (minimum)  | GCC 4 | MSVC 14 | Clang 5
-:-------|:---:|:----:|:----:
-Windows | ✅  | ✅   | ✅
-Linux   | x86 / x86_64 ✓ | _ | x86 ✓
-Mac OSX | ✅  | _    | ✅
+|        | GCC 4+  | MSVC 14+ | Clang 5+
+|:-------|:-------:|:--------:|:----:
+|Windows | ✅      | ✅      | ✅
+|Linux   | x86 / x86_64   | _ | x86
+|Mac OSX | ✅      | _        | ✅
 
 ### How it works?
 
@@ -47,7 +44,7 @@ Mac OSX | ✅  | _    | ✅
 $object {
     public:  (...) +---------------> [USER/EXTERNAL]
     private: (...)                         ^
-    mem:    [linkedlist]                   |
+    mem:      [pool]                       |
 } *self;      -- + --         +------------+
      +----->     |            |
 dynamic _        |    <--+ method: closure [self] (args, ...)
@@ -56,20 +53,21 @@ allocate +--->   |                    |       \-----> { function }
 constructor -> object  | +-----> [INTERNAL]
 destructor() ->  X
 ```
+
 #### Closure function?
 - This is a fork of [clofn](https://github.com/yulon/clofn).
-- We just copy function header and inject some code to pre-allocate **self** inside method.
-- And use power of **C macro** and struct to provide `obj.h`.
+- Just copy function header and inject some code to pre-allocate **self** inside method.
+- Using power of **C macro** and **struct** to provide `obj.h`.
 - Currently, support `x86` and `x86_64` only.
 
 ```asm
-; on x86
-jmp  $addr
-
-; on x86_64
-push rax
-mov  rax, $addr
-jmp  rax
+.data = $self
+> x86
+  | jmp $addr
+> x86_64  
+  | push rax
+  | mov  rax, $addr
+  | jmp  rax
 ```
 
 ### C++ comparison
@@ -97,3 +95,7 @@ delete f;                   |   Foo f = new(Foo)(15);
                             |   f->get();
                             |   f->base.release();
 ```
+
+<br>
+
+[![ko-fi](https://www.ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/L3L6W74V)
