@@ -1,7 +1,7 @@
 <p align="center">
     <h1 align="center">obj.h</h1>
     <h4 align="center">
-        A single-header supports oriented object programming in pure C
+        A single-header supports oriented object in pure C
        <br>
         - <i>just a hacking on assembly</i> -
     </h4>
@@ -18,12 +18,12 @@ f->base.release();
 
 ### Features
 - Support **OOP** in pure **C** (inspired by **C++** and **Java**).
-- Support classes, objects
-- Support cublic, private members
-- Support constructor, destructor
-- Support data abstraction
-- Support inheritance
-- No dependencies
+- Support classes, objects.
+- Support public, private members.
+- Support constructor, destructor.
+- Support data abstraction.
+- Support inheritance.
+- No dependencies.
 
 ### Usage
 
