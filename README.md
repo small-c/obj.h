@@ -32,11 +32,11 @@ f->base.release();
 
 ### Platform support
 
-|        | GCC 4+  | MSVC 14+ | Clang 5+
-|:-------|:-------:|:--------:|:----:
-|Windows | ✅      | ✅      | ✅
-|Linux   | x86 / x86_64   | _ | x86
-|Mac OSX | ✅      | _        | ✅
+|                         | GCC 4+  | MSVC 14+ | Clang 5+ | TCC 0.9
+|:------------------------|:-------:|:--------:|:--------:| :-----:
+|Windows (x86 / x64)      | ✅      | ✅      | ✅      | ✅
+|Linux   (i386 / x86_x64) | ✅      | _        | ✅      | ✅
+|Mac OSX (i386 / x86_64)  | ✅      | _        | ✅      | _
 
 ### How it works?
 
@@ -44,10 +44,10 @@ f->base.release();
 $object {
     public:  (...) +---------------> [USER/EXTERNAL]
     private: (...)                         ^
-    mem:      [pool]                       |
+    memory:    [pool]                      |
 } *self;      -- + --         +------------+
-     +----->     |            |
-dynamic _        |    <--+ method: closure [self] (args, ...)
+                 |            |
+dynamic  _       |    <--+ method: closure [self] (args, ...)
 allocate +--->   |                    |       \-----> { function }
                  v                    v
 constructor -> object  | +-----> [INTERNAL]
