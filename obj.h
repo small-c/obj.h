@@ -201,40 +201,144 @@ _mk:;
 #define __OBJ_ROOT self
 #endif
 
+struct __OBJ_entry {
+    void *ptr;
+    char sub;
+};
+
+struct __OBJ_pool {
+    int count;
+    int space;
+    struct __OBJ_entry *entries;
+};
+
 // Class base
 struct __OBJ_base {
     void *(*alloc)(size_t);
+    void *(*realloc)(void *, size_t);
+    void (*free)(void *);
     void (*release)();
-    void *reserved[2];
+    struct {
+        struct __OBJ_pool *p;
+        void *(*d)(void *);
+    } reserved;
 };
 
-// Memory node
-struct __OBJ_mem {
-    void *ptr;
-    struct __OBJ_mem *next;
-};
-
-// Append node
-static void *__OBJ_append(struct __OBJ_mem **node, void *ptr) {
-    if (ptr == NULL) return NULL;
-    struct __OBJ_mem *last = malloc(sizeof(struct __OBJ_mem));
-    if (last) {
-        last->ptr = ptr, last->next = *node;
-        *node = last;
-        return ptr;
-    }
-    __OBJ_ERR("could't append memory %p to node list!", ptr);
-    return NULL;
+static struct __OBJ_pool *__OBJ_pool_create() {
+    struct __OBJ_pool *p = malloc(sizeof(struct __OBJ_pool));
+    p->count = 0;
+    p->space = 0;
+    p->entries = NULL;
+    return p;
 }
 
-// Clean node list
-static void __OBJ_clean(struct __OBJ_mem *node) {
-    for (struct __OBJ_mem *next, *last = node; last != NULL; ) {
-        next = last->next;
-        free(last->ptr);
-        free(last);
-        last = next;
+static void __OBJ_pool_destroy(struct __OBJ_pool *p) {
+    if (p == NULL) return;
+    if (p->space > 0) {
+        for (int i = 0; i < p->space; i++) {
+            free(p->entries[i].ptr);
+        }
+        free(p->entries);
     }
+    free(p);
+}
+
+static struct __OBJ_entry *__OBJ_pool_find(struct __OBJ_entry entries[], int space, void *ptr) {
+    size_t index = (uintptr_t)ptr % (space - 1);
+    struct __OBJ_entry *tombstone = NULL;
+
+    for (;;) {
+        struct __OBJ_entry *entry = &entries[index];
+
+        if (entry->ptr == NULL) {
+            if (!entry->sub) {                          
+                return tombstone != NULL ? tombstone : entry;
+            }
+            else {                    
+                if (tombstone == NULL) tombstone = entry;
+            }
+        }
+        else if (entry->ptr == ptr) {                         
+            return entry;
+        }
+
+        index = (index + 1) % space;
+    }
+}
+
+static void __OBJ_pool_resize(struct __OBJ_pool *p, int space) {
+    struct __OBJ_entry *entries = malloc(space * sizeof(struct __OBJ_entry));
+    memset(entries, '\0', space * sizeof(struct __OBJ_entry));
+
+    p->count = 0;
+    for (int i = 0; i < p->space; i++) {
+        struct __OBJ_entry *entry = &p->entries[i];
+        if (entry->ptr == NULL) continue;
+
+        *__OBJ_pool_find(entries, space, entry->ptr) = *entry;
+        p->count++;
+    }
+
+    free(p->entries);
+    p->space = space;
+    p->entries = entries;
+}
+
+static void *__OBJ_pool_add(struct __OBJ_pool *p, void *ptr) {
+    if (ptr == NULL) return NULL;
+
+    int space = p->space;
+    if (p->count >= space * 0.75) {
+        __OBJ_pool_resize(p, space < 8 ? 8 : space * 2);
+    }
+
+    struct __OBJ_entry *entry = __OBJ_pool_find(p->entries, p->space, ptr);
+    if (entry->ptr == NULL) {
+        p->count++;
+    }
+
+    return entry->ptr = ptr;
+}
+
+static int __OBJ_pool_remove(struct __OBJ_pool *p, void *ptr) {
+    if (p->count == 0 || ptr == NULL) return 0;
+    int space = p->space;
+
+    if (space > 8 && p->count < space / 2) {
+        __OBJ_pool_resize(p, space /= 2);
+    }
+
+    struct __OBJ_entry *entry = __OBJ_pool_find(p->entries, space, ptr);
+    if (entry->ptr == NULL) return 0;
+
+    entry->sub = 1;
+    entry->ptr = NULL;
+    p->count--;
+    return 1;
+}
+
+static void *__OBJ_pool_alloc(struct __OBJ_pool *p, size_t size) {
+    void *ptr = malloc(size);
+    return __OBJ_pool_add(p, ptr);
+}
+
+static void *__OBJ_pool_realloc(struct __OBJ_pool *p, void *ptr, size_t size) {
+    __OBJ_pool_remove(p, ptr);
+    ptr = realloc(ptr, size);
+    return __OBJ_pool_add(p, ptr);
+}
+
+static void __OBJ_pool_free(struct __OBJ_pool *p, void *ptr) {
+    if (__OBJ_pool_remove(p, ptr)) free(ptr);
+}
+
+static void __OBJ_freebase(struct __OBJ_base *base) {
+    free(base->alloc);
+    free(base->realloc);
+    free(base->free);
+    free(base->release);
+    __OBJ_pool_destroy(base->reserved.p);
+    free(base);
 }
 
 // base::alloc(size_t)
@@ -243,8 +347,25 @@ static void *__OBJ_alloc(size_t size) {
     volatile size_t closn = __OBJ_CLOFNNUM;
     struct __OBJ_base *base = (struct __OBJ_base *)closn;
 
-    void *ptr = malloc(size);
-    return __OBJ_append((struct __OBJ_mem **)&base->reserved[0], ptr);
+    return __OBJ_pool_alloc(base->reserved.p, size);
+}
+
+// base::realloc(void *, size_t)
+static size_t __OBJ_realloc_s = 0;
+static void *__OBJ_realloc(void *ptr, size_t size) {
+    volatile size_t closn = __OBJ_CLOFNNUM;
+    struct __OBJ_base *base = (struct __OBJ_base *)closn;
+
+    return __OBJ_pool_realloc(base->reserved.p, ptr, size);
+}
+
+// base::free(void *)
+static size_t __OBJ_free_s = 0;
+static void __OBJ_free(void *ptr) {
+    volatile size_t closn = __OBJ_CLOFNNUM;
+    struct __OBJ_base *base = (struct __OBJ_base *)closn;
+
+    __OBJ_pool_free(base->reserved.p, ptr);
 }
 
 // base::release()
@@ -253,15 +374,15 @@ static void __OBJ_release() {
     volatile size_t closn = __OBJ_CLOFNNUM;
     struct __OBJ_base *base = (struct __OBJ_base *)closn;
 
-    struct __OBJ_mem *mem = base->reserved[0];
-    void (* dtor)(void *) = base->reserved[1];
-
-    free(base->release);
+    void *release = base->release;
     base->release = NULL;
 
-    if (dtor != NULL) dtor(base);
-    free(base->alloc);
-    __OBJ_clean(mem);
+    if (base->reserved.d != NULL) {
+        base->reserved.d(base);
+    }
+
+    base->release = release;
+    __OBJ_freebase(base);
 }
 
 // Some private macros
@@ -328,8 +449,7 @@ static void __OBJ_release() {
         void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), \
             &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
         if (__pf) { \
-            __OBJ_ROOT->method_name = __OBJ_append( \
-                (struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); \
+            __OBJ_ROOT->method_name = __OBJ_pool_add(__OBJ_ROOT->base.reserved.p, __pf); \
         } \
         else { \
             __OBJ_ERR("could't implement the method '%s'!", #method_name); \
@@ -400,17 +520,18 @@ static void __OBJ_release() {
 
 // Constructor setup instance
 #define obj_setup(class_name) \
-    __OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name)*)malloc(sizeof(__OBJ_PRV(class_name))); \
+    __OBJ_PRV(class_name) *__OBJ_ROOT = (__OBJ_PRV(class_name) *)malloc(sizeof(__OBJ_PRV(class_name))); \
     do { \
         if (!__OBJ_ROOT) { \
             __OBJ_ERR("could't create new class '%s' instance!", #class_name); \
             return NULL; \
         } \
-        __OBJ_ROOT->base.reserved[0] = NULL; \
-        __OBJ_ROOT->base.reserved[1] = NULL; \
-        __OBJ_ROOT->base.alloc = __OBJ_clofn((void*)__OBJ_alloc, &__OBJ_alloc_s, (void*)__OBJ_ROOT); \
-        __OBJ_ROOT->base.release = __OBJ_clofn((void*)__OBJ_release, &__OBJ_release_s, (void*)__OBJ_ROOT); \
-        if (!__OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __OBJ_ROOT)) goto __err__; \
+        __OBJ_ROOT->base.reserved.d = NULL; \
+        __OBJ_ROOT->base.reserved.p = __OBJ_pool_create(); \
+        __OBJ_ROOT->base.alloc      = __OBJ_clofn((void *)__OBJ_alloc, &__OBJ_alloc_s, (void *)__OBJ_ROOT); \
+        __OBJ_ROOT->base.realloc    = __OBJ_clofn((void *)__OBJ_realloc, &__OBJ_realloc_s, (void *)__OBJ_ROOT); \
+        __OBJ_ROOT->base.free       = __OBJ_clofn((void *)__OBJ_free, &__OBJ_free_s, (void *)__OBJ_ROOT); \
+        __OBJ_ROOT->base.release    = __OBJ_clofn((void *)__OBJ_release, &__OBJ_release_s, (void *)__OBJ_ROOT); \
     } while (0)
 
 // Constructor raiserror
@@ -421,18 +542,18 @@ static void __OBJ_release() {
 #define obj_done(class_name) \
     return (class_name)__OBJ_ROOT; \
     __err__:; \
-    __OBJ_clean((struct __OBJ_mem *)__OBJ_ROOT->base.reserved[0]); \
+    __OBJ_freebase(&__OBJ_ROOT->base); \
     return NULL
 
 // Bind deconstructor
 #define obj_dtor(class_name) \
-    __OBJ_ROOT->base.reserved[1] = (void*)__OBJ_DES(class_name)
+    __OBJ_ROOT->base.reserved.d = (void *)__OBJ_DES(class_name)
 
 // Override super's method
 #define obj_override(class_name, super_name, method_name) \
     do { \
         void *__pf = __OBJ_clofn(__OBJ_M(class_name, method_name), &__OBJ_S(class_name, method_name), (void*)__OBJ_ROOT); \
-        if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_append((struct __OBJ_mem **)&__OBJ_ROOT->base.reserved[0], __pf); } \
+        if (__pf) { __OBJ_ROOT->super_name.method_name = __OBJ_pool_add(__OBJ_ROOT->base.reserved.p, __pf); } \
         else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
     } while (0)
 
