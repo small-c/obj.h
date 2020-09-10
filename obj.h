@@ -29,7 +29,6 @@
 
 #ifndef __OBJ_H_
 #define __OBJ_H_
-#pragma once
 
 #ifdef __cplusplus
 #error C++ header is not supported, please use native OOP instead!
@@ -58,7 +57,7 @@
 #pragma warning(disable : 4996)
 #pragma comment(lib, "kernel32.lib")
 #if defined(DEBUG) || defined(_DEBUG)
-#error obj.h does not support MSVC on debug mode!
+#pragma message ("warning: something may be wrong on MSVC with debug mode!")
 #endif
 #endif
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS) || defined(_WINDOWS_H) || defined(_MEMORYAPI_H_))
@@ -68,9 +67,9 @@ extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned long newpr
 #define PAGE_EXECUTE_READWRITE  0x40
 #endif
 #define __OBJ_ACTIV(ptr, size) \
-    (VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, (size_t *)&(char [sizeof(unsigned long)]{})) != 0)
+    (VirtualProtect(ptr, size, PAGE_EXECUTE_READWRITE, &((unsigned long){ 0 })) != 0)
 #else
-#error This OS is not supported!
+#error "This OS is not supported!"
 #endif
 
 #if defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
@@ -204,8 +203,8 @@ _mk:;
 
 // Class base
 struct __OBJ_base {
-    void *(* alloc)(size_t);
-    void (* release)();
+    void *(*alloc)(size_t);
+    void (*release)();
     void *reserved[2];
 };
 
