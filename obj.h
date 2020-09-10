@@ -39,10 +39,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef __VAARGS
-#define __VAARGS(...) ,##__VA_ARGS__
-#endif
-
 #ifndef __EXPAND
 #define __EXPAND(x) x
 #endif
@@ -80,7 +76,12 @@ extern int __stdcall VirtualProtect(void *addr, size_t size, unsigned long newpr
 #error This architecture is not supported!
 #endif
 
-#define __OBJ_ERR(fmt, ...)    fprintf(stderr, "[obj.h] error: "fmt"\n" __VAARGS(__VA_ARGS__))
+#define __OBJ_ERR(...) \
+    do { \
+        fprintf(stderr, "[obj.h] error: "); \
+        fprintf(stderr, __VA_ARGS__); \
+        fprintf(stderr, "\n"); \
+    } while (0)
 
 #define __OBJ_MAXPHSIZE 1024
 #if __OBJ_X64
@@ -104,7 +105,7 @@ static void *__OBJ_clofn(void *prototype, size_t *phsize, void *data) {
             }
         }
 
-        __OBJ_ERR("could't find closure declaration at prototype function (%p)!", prototype);
+        fprintf(stderr, "could't find closure declaration at prototype function (%p)!", prototype);
         return NULL;
     }
 
