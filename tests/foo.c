@@ -36,8 +36,18 @@ ctor(Foo)(int bar)
 
     // Set bar from arg
     self->bar = bar;
-    // Self allocate, do not free it
+    
+    // Self allocate
     void *some = self->base.alloc(16);
+    // 'some' is managed, no need to free and DO NOT use free()!
+    // But you can free it immediately by using
+    // self->base.free(some);
+    
+    // Just reallocate it, upto 48 bytes
+    some = self->base.realloc(some, 48);
+    memset(some, '\0', 48);
+    
+    // self->base.free(some);
 
     // IMPORTANT! For error handing
     obj_done(Foo);
