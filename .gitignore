@@ -31,7 +31,12 @@
 *.out
 *.app
 
+# Visual Studio
 .vs/
 bin/
 pro/
 *.sln
+
+# xmake
+.xmake/
+build/
