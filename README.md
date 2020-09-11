@@ -1,9 +1,9 @@
 <p align="center">
     <h1 align="center">obj.h</h1>
     <h4 align="center">
-        A single-header supports oriented object in pure C
+        A single-header supports OOP in pure C
        <br>
-        - <i>just a hacking on assembly</i> -
+        - <em>just a hacking on assembly</em> -
     </h4>
     <p align="center">
         <a href="https://travis-ci.org/small-c/obj.h" target="_blank"><img src="https://travis-ci.org/small-c/obj.h.svg?branch=master"></a>
@@ -74,7 +74,7 @@ destructor() ->  X
 ```c++
 // C++ native OOP               // C with obj.h
 class Foo {                 |   class(Foo, public(
-public:                     |       int (* get)()
+public:                     |       int (*get)();
     Foo(int bar);           |   ), private(
     int get();              |       int bar;
 private:                    |   ));
