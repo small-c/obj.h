@@ -70,6 +70,8 @@ destructor() ->  X
   | jmp  rax
 ```
 
+Ref: [https://stackoverflow.com/a/9819716](https://stackoverflow.com/a/9819716)
+
 ### C++ comparison
 ```c++
 // C++ native OOP               // C with obj.h
