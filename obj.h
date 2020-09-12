@@ -558,4 +558,8 @@ static void __OBJ_release() {
         else { __OBJ_ERR("could't override the method '%s.%s'!", #super_name, #method_name); goto __err__; } \
     } while (0)
 
+// Const cast
+#define const_cast(type, prop) \
+    *(type *)&__OBJ_ROOT->prop
+
 #endif

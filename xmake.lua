@@ -15,6 +15,9 @@ target("foo")
 target("dog")
     add_files("tests/dog.c")
 
+target("const_cast")
+    add_files("tests/const_cast.c")
+
 target("animal")
     add_files("tests/animal/*.c")
 
