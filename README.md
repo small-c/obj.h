@@ -85,7 +85,7 @@ Generated code:
 
 #if x86
   | jmp $addr
-#else x86_64
+#elif x86_64
   | push rax
   | mov  rax, $addr
   | jmp  rax
@@ -93,6 +93,8 @@ Generated code:
 ```
 
 Ref: [https://stackoverflow.com/a/9819716](https://stackoverflow.com/a/9819716)
+
+> ARM32 & ARM64 target is in development.
 
 ### C++ comparison
 ```c++
