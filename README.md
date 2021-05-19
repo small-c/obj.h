@@ -38,6 +38,8 @@ f->base.release();
 |Linux   (i386 / x86_x64) | ✅      | _        | ✅      | ✅
 |Mac OSX (i386 / x86_64)  | ✅      | _        | ✅      | _
 
+> On **Visual Studio 2017 15.8+**, please disable [**Just My Code debugging**](https://docs.microsoft.com/en-us/cpp/build/reference/jmc).
+
 ### How it works?
 
 ```elm
@@ -60,14 +62,34 @@ destructor() ->  X
 - Using power of **C macro** and **struct** to provide `obj.h`.
 - Currently, support `x86` and `x86_64` only.
 
+Function template:
+```c
+static void method() {
+    volatile size_t self = 0xdeadbeef;
+    ...
+```
+
+Disassemble:
 ```asm
-.data = $self
-> x86
+; prolog
+    mov     eax, 2864434397
+    mov     QWORD PTR [rbp-8], rax
+    ...
+```
+
+Generated code:
+```asm
+; prolog
+; mov     eax, ...
+[.data = $self]
+
+#if x86
   | jmp $addr
-> x86_64  
+#else x86_64
   | push rax
   | mov  rax, $addr
   | jmp  rax
+#end
 ```
 
 Ref: [https://stackoverflow.com/a/9819716](https://stackoverflow.com/a/9819716)
