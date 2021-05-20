@@ -65,31 +65,33 @@ destructor() ->  X
 Function template:
 ```c
 static void method() {
-    volatile size_t self = 0xdeadbeef;
+    volatile size_t self = ...;
     ...
 ```
 
 Disassemble:
 ```asm
 ; prolog
-    mov     eax, 2864434397
+    mov     rax, ...
     mov     QWORD PTR [rbp-8], rax
     ...
 ```
 
-Generated code:
+Generated function:
 ```asm
-; prolog
-; mov     eax, ...
-[.data = $self]
+; x86
+; copied prolog
+    mov     eax, [data]
+    jmp     [addr]
+```
 
-#if x86
-  | jmp $addr
-#elif x86_64
-  | push rax
-  | mov  rax, $addr
-  | jmp  rax
-#end
+```asm
+; x86_64
+; copied prolog
+    mov     rax, [data]
+    push    rax
+    mov     rax, [addr]
+    jmp     rax
 ```
 
 Ref: [https://stackoverflow.com/a/9819716](https://stackoverflow.com/a/9819716)
