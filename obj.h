@@ -1,6 +1,7 @@
 /*
- * Copyright (c) 2020, Nomi-san <wuuyi123@gmail.com> All rights reserved.
- * Repos: https://github.com/small-c/obj.h/
+ * Copyright (c) 2022, Nomi-san <wuuyi123@gmail.com> All rights reserved.
+ * Repos: small-c/obj.h (https://github.com/small-c/obj.h)
+ * Special thanks to yulon/clofn (https://github.com/yulon/clofn)
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -22,8 +23,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * Special thanks to clofn (https://github.com/yulon/clofn)
  *
  */
 
@@ -52,8 +51,8 @@
 #if defined (_MSC_VER)
 #pragma warning(disable : 4996)
 #pragma comment(lib, "kernel32.lib")
-#if defined(DEBUG) || defined(_DEBUG)
-#pragma message ("warning: something may be wrong on MSVC with debug mode!")
+#if ((defined(DEBUG) || defined(_DEBUG)) && _MSC_VER >= 1915)
+#pragma message ("warning: On Visual Studio 2017 15.8+, please disable Just My Code debugging!")
 #endif
 #endif
 #if !(defined(_WINDOWS_) || defined(_INC_WINDOWS) || defined(_WINDOWS_H) || defined(_MEMORYAPI_H_))
