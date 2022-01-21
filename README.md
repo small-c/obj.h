@@ -3,7 +3,11 @@ obj.h
 A single-header supports OOP in pure C.<br>
 Using power of preprocessor and hacking on assembly to unlock the limits.
 
-![](https://travis-ci.org/small-c/obj.h.svg?branch=master)
+<p>
+    <a href="https://travis-ci.org/small-c/obj.h" target="_blank">
+        <img src="https://travis-ci.org/small-c/obj.h.svg?branch=master" alt="">
+    </a>
+</p>
 
 ```cpp
 Foo f = new(Foo)(10);       // create Foo instance
