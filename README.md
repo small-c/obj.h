@@ -18,6 +18,7 @@ f->base.release();          // release
     - [x] Abstraction
     - [x] Inheritance
 - [x] Zero dependency
+- [x] No breaking editor's intellisense
 - [x] `x86/_64` target
 - [ ] `arm` target
 
@@ -127,6 +128,10 @@ Generated function:
 Refs:
 - [https://en.wikipedia.org/wiki/Function_prologue_and_epilogue](https://en.wikipedia.org/wiki/Function_prologue_and_epilogue)
 - [https://stackoverflow.com/a/9819716](https://stackoverflow.com/a/9819716)
+
+#### How we provide classes, public/private?
+
+See [obj.h](./obj.h) for more.
 
 <br>
 
